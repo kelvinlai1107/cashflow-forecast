@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>現金流量預測表 — 拉拉手教育集團</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;--border:#e2e0d8;--border2:#c8c5bc;
+  --text:#1a1917;--text2:#6b6860;--text3:#a09d97;
+  --green:#1a6b5a;--green-bg:#e6f2ef;
+  --red:#c84b2f;--red-bg:#fdf0ed;
+  --amber:#a06b00;--amber-bg:#fdf6e3;
+  --purple:#6b3fa0;--purple-bg:#f3eefb;
+  --r:6px;--rl:10px;
+  --mono:'DM Mono',monospace;--sans:'Noto Sans TC',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+.shell{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+/* sidebar */
+.sidebar{background:#1a1917;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-sub{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:3px}
+.brand-name{font-size:14px;font-weight:700;color:#fff;line-height:1.35}
+.nav-sec{padding:10px 0 5px;border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-sec-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:0 16px 6px}
+.nav-btn{display:flex;align-items:center;gap:9px;width:100%;padding:7px 16px;font-size:12px;color:rgba(255,255,255,.6);background:none;border:none;border-left:2px solid transparent;cursor:pointer;text-align:left;transition:all .12s;font-family:var(--sans)}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.06)}
+.nav-btn.active{color:#fff;background:rgba(255,255,255,.1);border-left-color:#7ecfc0}
+.nicon{width:14px;height:14px;flex-shrink:0;opacity:.65}
+.save-bar{padding:10px 16px;margin-top:auto;border-top:1px solid rgba(255,255,255,.06);font-size:10px;color:rgba(255,255,255,.3);line-height:1.6}
+.sdot{width:6px;height:6px;border-radius:50%;background:#7ecfc0;display:inline-block;margin-right:5px;vertical-align:middle}
+.sdot.saving{background:#f0a050;animation:pulse .8s infinite}
+.sdot.err{background:#e05040}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* main */
+.main{padding:22px 26px;overflow:auto}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.pt{font-size:18px;font-weight:700}
+.ps{font-size:12px;color:var(--text2);margin-top:3px}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:12px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .12s}
+.btn:hover{background:var(--surface2)}
+.btn.pri{background:var(--text);color:#fff;border-color:var(--text)}
+.btn.pri:hover{opacity:.85}
+.btn.sm{padding:4px 9px;font-size:11px}
+.btn.xs{padding:3px 7px;font-size:10px}
+.btn.ghost{border-color:var(--border);color:var(--text2)}
+.btn.ghost:hover{color:var(--text);background:var(--surface2)}
+.btn.danger-ghost{border-color:var(--border);color:var(--red)}
+.btn.danger-ghost:hover{background:var(--red-bg);border-color:var(--red)}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--text3);padding:3px 5px;border-radius:4px;font-size:13px;line-height:1;transition:all .12s}
+.btn-del:hover{color:var(--red);background:var(--red-bg)}
+/* season selector strip (shared component) */
+.season-selector{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.ssb{display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:var(--r);border:.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .12s;white-space:nowrap}
+.ssb:hover{border-color:var(--border2)}
+.ssb.active{border-color:var(--green);background:var(--green-bg)}
+.ssb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ssb-name{font-size:12px;font-weight:700}
+.ssb-range{font-size:10px;color:var(--text2)}
+.ssb-add{background:none;border:.5px dashed var(--border2);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--r);font-size:12px;font-family:var(--sans);transition:all .12s}
+.ssb-add:hover{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+/* summary */
+.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sc{background:var(--surface2);border-radius:var(--r);padding:11px 13px}
+.sc-lbl{font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.sc-val{font-size:19px;font-weight:700;font-family:var(--mono)}
+.sc-sub{font-size:10px;color:var(--text3);margin-top:2px}
+/* co tabs */
+.cotabs{display:flex;gap:3px;margin-bottom:12px;background:var(--surface2);padding:3px;border-radius:var(--rl);width:fit-content;flex-wrap:wrap}
+.cotab{padding:5px 13px;border-radius:var(--r);font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);transition:all .12s;font-family:var(--sans)}
+.cotab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+/* forecast table */
+.twrap{overflow-x:auto;border:.5px solid var(--border);border-radius:var(--rl);background:var(--surface)}
+table.ft{width:100%;border-collapse:collapse;font-size:12px}
+.ft th{padding:7px 10px;text-align:right;font-weight:500;font-size:10px;color:var(--text2);background:var(--surface2);border-bottom:.5px solid var(--border);white-space:nowrap;letter-spacing:.03em}
+.ft th.lc{text-align:left;min-width:150px}
+.ft td{padding:5px 10px;text-align:right;border-bottom:.5px solid var(--border);font-family:var(--mono);font-size:11px;white-space:nowrap}
+.ft td.lc{font-family:var(--sans);text-align:left;font-size:11px;color:var(--text2)}
+.ft td.lc.sub{padding-left:22px;font-size:10px;color:var(--text3)}
+.ft tr:last-child td{border-bottom:none}
+.ft tr.grp td{background:var(--bg);font-weight:500;font-size:9px;color:var(--text3);padding:8px 10px 3px;border-bottom:none;font-family:var(--sans);letter-spacing:.06em;text-transform:uppercase}
+.ft tr.sub-r td{background:var(--surface2);font-weight:700;border-top:.5px solid var(--border)}
+.ft tr.sub-r td.lc{font-family:var(--sans)}
+.ft tr.bal-r td{background:#1a1917;color:#fff;font-weight:700;font-size:12px}
+.ft tr.bal-r td.lc{font-family:var(--sans)}
+.msub{font-size:9px;color:var(--text3);display:block;margin-top:1px;font-family:var(--sans)}
+.cp{color:var(--green);font-weight:500}.cn{color:var(--red);font-weight:500}.cw{color:var(--amber);font-weight:500}.dash{color:var(--text3)}
+/* alerts */
+.alert{display:flex;gap:8px;padding:9px 12px;border-radius:var(--r);margin-bottom:12px;font-size:12px}
+.alert.danger{background:var(--red-bg);border:.5px solid #f0b9ae;color:var(--red)}
+.alert.warn{background:var(--amber-bg);border:.5px solid #e6c96b;color:var(--amber)}
+/* month editor */
+.month-tabs-wrap{display:flex;gap:0;margin-bottom:14px;border-bottom:.5px solid var(--border);overflow-x:auto}
+.month-tab{padding:8px 16px;font-size:12px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;font-family:var(--sans);font-weight:500;white-space:nowrap;flex-shrink:0}
+.month-tab:hover{color:var(--text)}
+.month-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.co-editor-tabs{display:flex;gap:3px;margin-bottom:14px;background:var(--surface2);padding:3px;border-radius:var(--rl);width:fit-content}
+.co-editor-tab{padding:5px 13px;border-radius:var(--r);font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);transition:all .12s;font-family:var(--sans)}
+.co-editor-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+/* form sections */
+.fsec{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:12px;overflow:hidden}
+.fsh{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:.5px solid var(--border);background:var(--surface2);gap:8px;flex-wrap:wrap}
+.fst{font-size:12px;font-weight:700}
+.ig{padding:10px 15px}
+/* item rows */
+.irow{display:grid;grid-template-columns:minmax(160px,2fr) minmax(100px,1fr) minmax(80px,1fr) 26px;gap:7px;align-items:center;padding:5px 0;border-bottom:.5px solid var(--border)}
+.irow:last-child{border-bottom:none}
+.irow.hdr{font-size:10px;color:var(--text3);padding:3px 0 6px;font-weight:500;letter-spacing:.04em;border-bottom:.5px solid var(--border)}
+input[type=text],input[type=number],select{width:100%;padding:5px 8px;font-size:12px;font-family:var(--sans);border:.5px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);transition:border-color .12s}
+input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(26,107,90,.1)}
+/* transfer */
+.trow{display:grid;grid-template-columns:1fr auto auto auto 100px 26px;gap:6px;align-items:center;padding:6px 0;border-bottom:.5px solid var(--border)}
+.trow:last-child{border-bottom:none}
+.arr{color:var(--text3);font-size:14px}
+/* template library */
+.tpl-row{display:grid;grid-template-columns:22px minmax(130px,2fr) minmax(90px,1fr) 26px;gap:6px;align-items:center;padding:5px 0;border-bottom:.5px solid var(--border)}
+.tpl-row:last-child{border-bottom:none}
+.tpl-row.hdr{font-size:10px;color:var(--text3);padding:3px 0 6px;font-weight:500;letter-spacing:.04em}
+.tpl-row.wide{grid-template-columns:22px minmax(130px,1.6fr) minmax(90px,1fr) 100px minmax(80px,1fr) 48px 26px}
+.tpl-sec-lbl{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 5px;border-bottom:.5px solid var(--border)}
+.tpl-tabs{display:flex;gap:0;border-bottom:.5px solid var(--border);margin-bottom:16px}
+.tpl-tab{padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;font-family:var(--sans)}
+.tpl-tab:hover{color:var(--text)}
+.tpl-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tpl-panel{display:none}.tpl-panel.active{display:block}
+.tpl-row.with-note{grid-template-columns:22px minmax(130px,1.8fr) minmax(90px,1fr) minmax(80px,1fr) 26px}
+/* second-level company tabs inside template panels */
+.tpl-co-tabs{display:flex;gap:3px;margin-bottom:14px;background:var(--surface2);padding:3px;border-radius:var(--rl);width:fit-content}
+.tpl-co-tab{padding:5px 13px;border-radius:var(--r);font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);transition:all .12s;font-family:var(--sans)}
+.tpl-co-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.sort-btns{display:flex;flex-direction:column;gap:0;align-items:center}
+.btn-sort{background:none;border:none;cursor:pointer;color:var(--text3);padding:0 2px;line-height:1.1;font-size:11px;transition:all .1s;border-radius:2px}
+.btn-sort:hover{color:var(--green);background:var(--green-bg)}
+.btn-sort:disabled{opacity:.18;cursor:default}
+/* settings */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pbox{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:15px;margin-bottom:12px}
+.pbox-title{font-size:12px;font-weight:700;margin-bottom:12px}
+.flbl{font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.fgrp{margin-bottom:11px}
+/* season manager */
+.season-list-row{display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:center;padding:9px 0;border-bottom:.5px solid var(--border)}
+.season-list-row:last-child{border-bottom:none}
+.season-badge-sm{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700}
+/* quick-add */
+.qa-menu{position:fixed;z-index:9999;background:var(--surface);border:.5px solid var(--border2);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.14);min-width:260px;max-height:340px;overflow-y:auto;display:none}
+.qa-menu.open{display:block}
+.qa-group-lbl{font-size:9px;color:var(--text3);padding:8px 12px 3px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;background:var(--surface2);position:sticky;top:0}
+.qa-item{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:.5px solid var(--border);gap:10px}
+.qa-item:last-child{border-bottom:none}
+.qa-item:hover{background:var(--green-bg)}
+.qa-item.all-item{font-weight:700;color:var(--green);background:var(--surface2)}
+.qa-item.all-item:hover{background:var(--green-bg)}
+.qa-name{color:var(--text);font-weight:500}.qa-amt{color:var(--green);font-family:var(--mono);font-size:11px;white-space:nowrap;font-weight:600}.qa-meta{font-size:10px;color:var(--text3);margin-top:1px}.qa-item-inner{flex:1;min-width:0}
+.qa-empty{padding:14px;font-size:12px;color:var(--text3);text-align:center}
+/* tags & dots */
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500;margin-left:4px;vertical-align:middle}
+.tag.renew{background:var(--purple-bg);color:var(--purple)}
+.init-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--amber);background:var(--amber-bg);border:.5px solid #e6c96b;padding:3px 8px;border-radius:3px;margin-left:8px}
+.cdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0;vertical-align:middle}
+.d-hq{background:#1a6b5a}.d-a01{background:#2255a4}.d-a02{background:#a06b00}.d-bc{background:#6b3fa0}
+/* season dot colors */
+.s1c{color:#2255a4}.s2c{color:#c84b2f}.s3c{color:#6b3fa0}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border-radius:var(--rl);border:.5px solid var(--border);width:360px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.16)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:.5px solid var(--border)}
+.modal-title{font-size:14px;font-weight:700}
+.modal-body{padding:16px 18px}
+.modal-footer{padding:12px 18px;border-top:.5px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+@media(max-width:880px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto}
+  .srow{grid-template-columns:repeat(2,1fr)}
+  .sgrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="login-section" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#1a1917;gap:24px">
+  <div style="text-align:center">
+    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px">現金流量預測</div>
+    <div style="font-size:24px;font-weight:700;color:#fff;margin-bottom:4px">拉拉手教育集團</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.4)">請登入公司帳號以存取資料</div>
+  </div>
+  <button onclick="login()" style="padding:12px 28px;background:#1a6b5a;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-weight:500">🔑 登入 Microsoft</button>
+  <div id="overlay-status" style="font-size:12px;color:rgba(255,255,255,.3)"></div>
+</div>
+<div class="shell" style="display:none">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-sub">現金流量預測</div>
+    <div class="brand-name">拉拉手<br>教育集團</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-sec-lbl">預測</div>
+    <button class="nav-btn active" onclick="goto('forecast',this)">
+      <svg class="nicon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,7 9,10 15,3"/></svg>預測總覽
+    </button>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-sec-lbl">逐月編輯</div>
+    <button class="nav-btn" onclick="goto('monthly',this)">
+      <svg class="nicon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 1v3M11 1v3M2 7h12"/></svg>逐月收支
+    </button>
+    <button class="nav-btn" onclick="goto('transfer',this)">
+      <svg class="nicon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2,5h12M2,11h12"/><polyline points="10,3 13,5 10,7"/><polyline points="6,9 3,11 6,13"/></svg>跨公司調撥
+    </button>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-sec-lbl">設定</div>
+    <button class="nav-btn" onclick="goto('templates',this)">
+      <svg class="nicon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/></svg>收支範本庫
+    </button>
+    <button class="nav-btn" onclick="goto('seasons',this)">
+      <svg class="nicon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>期別管理
+    </button>
+    <button class="nav-btn" onclick="goto('settings',this)">
+      <svg class="nicon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>基本設定
+    </button>
+  </div>
+  <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.08)">
+    <button id="auth-login-btn" onclick="login()" style="width:100%;padding:7px;background:#1a6b5a;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500">🔑 登入 Microsoft</button>
+    <div id="auth-user-info" style="display:none">
+      <div style="font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px">已登入</div>
+      <div id="auth-user-name" style="font-size:11px;color:#fff;margin-bottom:6px;word-break:break-all"></div>
+      <button onclick="logout()" style="width:100%;padding:4px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);border-radius:4px;font-size:10px;cursor:pointer">登出</button>
+    </div>
+  </div>
+  <div style="padding:8px 14px;border-top:1px solid rgba(255,255,255,.08)">
+    <button onclick="document.getElementById('import-file').click()" style="width:100%;padding:6px;background:#2255a4;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-weight:500">⬆ 從備份匯入</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importBackup(this)">
+  </div>
+  <div class="save-bar"><span class="sdot" id="sdot"></span><span id="smsg">載入中...</span></div>
+</aside>
+
+<main class="main">
+
+<!-- 預測總覽 -->
+<div id="page-forecast" class="page active">
+  <div class="ph">
+    <div><div class="pt">預測總覽</div><div class="ps" id="period-lbl">—</div></div>
+    <button class="btn sm" onclick="exportCSV()">↓ 匯出 CSV</button>
+  </div>
+  <div class="season-selector" id="forecast-season-sel"></div>
+  <div id="alerts"></div>
+  <div class="cotabs">
+    <button class="cotab active" onclick="setCoView('ALL',this)">全體合計</button>
+    <button class="cotab" onclick="setCoView('HQ',this)"><span class="cdot d-hq"></span>HQ</button>
+    <button class="cotab" onclick="setCoView('A01',this)"><span class="cdot d-a01"></span>A01</button>
+    <button class="cotab" onclick="setCoView('A02',this)"><span class="cdot d-a02"></span>A02</button>
+    <button class="cotab" onclick="setCoView('BC',this)"><span class="cdot d-bc"></span>BC</button>
+  </div>
+  <div class="srow" id="srow"></div>
+  <div class="twrap"><table class="ft" id="ftbl"></table></div>
+</div>
+
+<!-- 逐月收支 -->
+<div id="page-monthly" class="page">
+  <div class="ph">
+    <div><div class="pt">逐月收支</div><div class="ps">選擇期別與月份，各公司獨立編輯</div></div>
+    <button class="btn sm" onclick="exportMonthlyExcel()">↓ 匯出 Excel</button>
+  </div>
+  <div class="season-selector" id="monthly-season-sel"></div>
+  <div class="month-tabs-wrap" id="month-tabs"></div>
+  <div class="co-editor-tabs" id="co-editor-tabs">
+    <button class="co-editor-tab active" onclick="setEditorCo('HQ',this)"><span class="cdot d-hq"></span>HQ</button>
+    <button class="co-editor-tab" onclick="setEditorCo('A01',this)"><span class="cdot d-a01"></span>A01</button>
+    <button class="co-editor-tab" onclick="setEditorCo('A02',this)"><span class="cdot d-a02"></span>A02</button>
+    <button class="co-editor-tab" onclick="setEditorCo('BC',this)"><span class="cdot d-bc"></span>BC</button>
+  </div>
+  <div id="month-editor-body"></div>
+</div>
+
+<!-- 跨公司調撥 -->
+<div id="page-transfer" class="page">
+  <div class="ph">
+    <div><div class="pt">跨公司調撥</div><div class="ps">A→B 對 TOTAL 影響為零</div></div>
+    <button class="btn pri" onclick="addTransfer()">＋ 新增調撥</button>
+  </div>
+  <div class="season-selector" id="transfer-season-sel"></div>
+  <div class="fsec">
+    <div class="fsh"><div class="fst">調撥記錄</div></div>
+    <div class="ig" id="tlist"></div>
+  </div>
+</div>
+
+<!-- 收支範本庫 -->
+<div id="page-templates" class="page">
+  <div class="ph">
+    <div><div class="pt">收支範本庫</div><div class="ps">設定固定科目，逐月編輯時可快速帶入</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sm" onclick="downloadTplExcel()">↓ 下載 Excel 範本</button>
+      <label class="btn sm pri" style="cursor:pointer">↑ 上傳 Excel 匯入<input type="file" accept=".xlsx,.xls" style="display:none" onchange="uploadTplExcel(this)"></label>
+    </div>
+  </div>
+  <div class="tpl-tabs">
+    <button class="tpl-tab active" onclick="switchTplTab('income',this)">收入範本</button>
+    <button class="tpl-tab" onclick="switchTplTab('expense',this)">支出範本</button>
+  </div>
+  <div id="tpl-panel-income" class="tpl-panel active">
+    <div class="tpl-co-tabs" id="tpl-income-co-tabs">
+      <button class="tpl-co-tab active" onclick="switchTplCo('income','HQ',this)"><span class="cdot d-hq"></span>HQ</button>
+      <button class="tpl-co-tab" onclick="switchTplCo('income','A01',this)"><span class="cdot d-a01"></span>A01</button>
+      <button class="tpl-co-tab" onclick="switchTplCo('income','A02',this)"><span class="cdot d-a02"></span>A02</button>
+      <button class="tpl-co-tab" onclick="switchTplCo('income','BC',this)"><span class="cdot d-bc"></span>BC</button>
+    </div>
+    <div class="fsec">
+      <div class="fsh">
+        <div><div class="fst" id="tpl-income-co-title">收入範本</div><div style="font-size:11px;color:var(--text2);margin-top:2px">首次進入某月時自動帶入</div></div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="copy-income-src" style="font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2)" onchange="showCopyPicker('income',this.value)">
+            <option value="">從其他公司複製科目名稱...</option>
+            <option value="HQ">HQ 拉拉手教育</option>
+            <option value="A01">A01 拉拉手西屯</option>
+            <option value="A02">A02 拉拉手北屯</option>
+            <option value="BC">BC 波淘股份</option>
+          </select>
+          <button class="btn sm" style="background:var(--green);color:#fff;border-color:var(--green)" onclick="openPushIncomeModal()">→ 帶入逐月收支</button>
+          <button class="btn sm" id="tpl-income-add-btn" onclick="addTplI('HQ')">＋ 新增科目</button>
+        </div>
+      </div>
+      <div class="ig" id="tpl-income-wrap"></div>
+      <div id="copy-income-picker" style="display:none"></div>
+    </div>
+  </div>
+  <div id="tpl-panel-expense" class="tpl-panel">
+    <div class="tpl-co-tabs" id="tpl-expense-co-tabs">
+      <button class="tpl-co-tab active" onclick="switchTplCo('expense','HQ',this)"><span class="cdot d-hq"></span>HQ</button>
+      <button class="tpl-co-tab" onclick="switchTplCo('expense','A01',this)"><span class="cdot d-a01"></span>A01</button>
+      <button class="tpl-co-tab" onclick="switchTplCo('expense','A02',this)"><span class="cdot d-a02"></span>A02</button>
+      <button class="tpl-co-tab" onclick="switchTplCo('expense','BC',this)"><span class="cdot d-bc"></span>BC</button>
+    </div>
+    <div class="fsec">
+      <div class="fsh">
+        <div><div class="fst" id="tpl-expense-co-title">每月固定支出</div><div style="font-size:11px;color:var(--text2);margin-top:2px">首次進入某月時自動帶入</div></div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="copy-expense-src" style="font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2)" onchange="showCopyPicker('expense',this.value)">
+            <option value="">從其他公司複製科目名稱...</option>
+            <option value="HQ">HQ 拉拉手教育</option>
+            <option value="A01">A01 拉拉手西屯</option>
+            <option value="A02">A02 拉拉手北屯</option>
+            <option value="BC">BC 波淘股份</option>
+          </select>
+          <button class="btn sm" style="background:var(--green);color:#fff;border-color:var(--green)" onclick="openPushMonthlyModal()">→ 帶入逐月收支</button>
+          <button class="btn sm" id="tpl-expense-add-btn" onclick="addTplM('HQ')">＋ 新增科目</button>
+        </div>
+      </div>
+      <div class="ig" id="tpl-monthly-wrap"></div>
+      <div id="copy-expense-picker" style="display:none"></div>
+    </div>
+    <div class="fsec">
+      <div class="fsh" style="margin-bottom:8px">
+        <div><div class="fst">週期性 &amp; 年度支出範本</div><div style="font-size:11px;color:var(--text2);margin-top:2px">季繳、年繳等，從「從範本新增」選單選入</div></div>
+      </div>
+      <div class="tpl-co-tabs" id="tpl-periodic-co-tabs">
+        <button class="tpl-co-tab active" onclick="switchTplCo('periodic','HQ',this)"><span class="cdot d-hq"></span>HQ</button>
+        <button class="tpl-co-tab" onclick="switchTplCo('periodic','A01',this)"><span class="cdot d-a01"></span>A01</button>
+        <button class="tpl-co-tab" onclick="switchTplCo('periodic','A02',this)"><span class="cdot d-a02"></span>A02</button>
+        <button class="tpl-co-tab" onclick="switchTplCo('periodic','BC',this)"><span class="cdot d-bc"></span>BC</button>
+      </div>
+      <div class="fsh" style="margin-top:8px">
+        <div class="fst" id="tpl-periodic-co-title">週期性支出 — HQ</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="copy-periodic-src" style="font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2)" onchange="showCopyPicker('periodic',this.value)">
+            <option value="">從其他公司複製科目名稱...</option>
+            <option value="HQ">HQ 拉拉手教育</option>
+            <option value="A01">A01 拉拉手西屯</option>
+            <option value="A02">A02 拉拉手北屯</option>
+            <option value="BC">BC 波淘股份</option>
+          </select>
+          <select id="tpl-periodic-freq-sel" style="font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text)">
+            <option value="bimonthly">每2個月</option>
+            <option value="quarterly">每3個月</option>
+            <option value="seasonal">每學期(4個月)</option>
+            <option value="semiannual">每半年</option>
+            <option value="annual" selected>每年</option>
+          </select>
+          <button class="btn sm" id="tpl-periodic-add-btn" onclick="addTplPeriodic('HQ')">＋ 新增</button>
+        </div>
+      </div>
+      <div class="ig" id="tpl-periodic-wrap"></div>
+      <div id="copy-periodic-picker" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 期別管理 -->
+<div id="page-seasons" class="page">
+  <div class="ph">
+    <div><div class="pt">期別管理</div><div class="ps">新增或刪除季別，各季資料完全獨立</div></div>
+    <button class="btn pri" onclick="openAddSeasonModal()">＋ 新增期別</button>
+  </div>
+  <div class="fsec">
+    <div class="fsh"><div class="fst">已建立的期別</div></div>
+    <div class="ig" id="season-list"></div>
+  </div>
+</div>
+
+<!-- 基本設定 -->
+<div id="page-settings" class="page">
+  <div class="ph">
+    <div><div class="pt">基本設定</div></div>
+    <button class="btn pri" onclick="saveSettings()">儲存</button>
+  </div>
+  <div class="sgrid">
+    <div>
+      <div class="pbox">
+        <div class="pbox-title">各季別期初銀行餘額（NT$）</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:12px">每個季別的期初餘額獨立設定</div>
+        <div id="open-fields"></div>
+      </div>
+    </div>
+    <div>
+      <div class="pbox">
+        <div class="pbox-title">說明</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.9">
+          <b>學期續報收入：</b>在逐月收支的收入欄，勾選「學期續報」標記，預測表中會特別顯示。<br><br>
+          <b>期初餘額：</b>建議每季開始時到此更新為實際銀行餘額，使預測更準確。
+        </div>
+      </div>
+      <div class="pbox">
+        <div class="pbox-title">SharePoint 儲存設定</div>
+        <div class="field-group" style="margin-bottom:10px">
+          <div class="field-label">文件庫名稱（Library）</div>
+          <input type="text" id="sp-library" placeholder="營運管理" style="margin-top:4px">
+        </div>
+        <div class="field-group" style="margin-bottom:10px">
+          <div class="field-label">資料夾路徑（Folder）</div>
+          <input type="text" id="sp-folder" placeholder="Claude/現金流量預測" style="margin-top:4px">
+        </div>
+        <div style="font-size:10px;color:var(--text3);padding:6px 8px;background:var(--bg);border-radius:4px;word-break:break-all" id="sp-path-preview"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- floating quick-add menu -->
+<div id="qa-menu" class="qa-menu"></div>
+
+<!-- add season modal -->
+<div id="modal-overlay" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">新增期別</div>
+      <button class="btn-del" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrp">
+        <div class="flbl">學期</div>
+        <select id="modal-s">
+          <option value="S1">S1 春季（3–6月）</option>
+          <option value="S2">S2 夏季（7–10月）</option>
+          <option value="S3" selected>S3 秋季（11–2月）</option>
+        </select>
+      </div>
+      <div class="fgrp">
+        <div class="flbl">起始年份</div>
+        <input type="number" id="modal-y" value="2027" min="2020" max="2040">
+      </div>
+      <div id="modal-preview" style="font-size:11px;color:var(--text2);padding:7px 10px;background:var(--bg);border-radius:var(--r);margin-top:4px"></div>
+      <div id="modal-err" style="font-size:11px;color:var(--red);margin-top:8px;display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" onclick="closeModal()">取消</button>
+      <button class="btn pri" onclick="confirmAddSeason()">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════
+const COS=[
+  {id:'HQ', name:'拉拉手教育(HQ)', short:'HQ', dc:'d-hq', color:'#1a6b5a'},
+  {id:'A01',name:'拉拉手西屯(A01)',short:'A01',dc:'d-a01',color:'#2255a4'},
+  {id:'A02',name:'拉拉手北屯(A02)',short:'A02',dc:'d-a02',color:'#a06b00'},
+  {id:'BC', name:'波淘股份(BC)',   short:'BC', dc:'d-bc', color:'#6b3fa0'},
+];
+const SEAS_DEF={
+  S1:{name:'S1 春季',months:[3,4,5,6],rm:6,color:'#2255a4'},
+  S2:{name:'S2 夏季',months:[7,8,9,10],rm:10,color:'#c84b2f'},
+  S3:{name:'S3 秋季',months:[11,12,1,2],rm:2,color:'#6b3fa0'},
+};
+const PFREQS=[{v:'annual',l:'每年'},{v:'semiannual',l:'每半年'},{v:'seasonal',l:'每學期(4個月)'},{v:'quarterly',l:'每3個月'},{v:'bimonthly',l:'每2個月'}];
+const STORAGE_KEY='llh-cashflow-v5';
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+// seasons: [{key:'S3-2026', s:'S3', year:2026, opening:{HQ:0,...}}]
+// monthData[ym][coId] = {income:[{id,name,amount,isRenew}], expense:[{id,name,amount,note}], _fromTpl:bool}
+// transfers[]: [{id,name,from,to,amount,ym}]
+let ST={
+  seasons:[],           // list of active seasons
+  activeSeason:'S3-2026',  // currently viewed season (forecast & monthly)
+  monthData:{},
+  transfers:[],
+  coView:'ALL',
+  editorMonth:null,
+  editorCo:'HQ',
+  tplIncome:{HQ:[],A01:[],A02:[],BC:[]},
+  tplMonthly:{HQ:[],A01:[],A02:[],BC:[]},
+  tplPeriodic:{HQ:[],A01:[],A02:[],BC:[]},
+};
+let saveTimer=null;
+const uid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const escH=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ═══════════════════════════════════
+// SHAREPOINT AUTH & PERSISTENCE
+// ═══════════════════════════════════
+const SP_SITE_DEFAULT='lalaso.sharepoint.com:/sites/c-level2:';
+const SP_LIBRARY_DEFAULT='營運管理';
+const SP_FOLDER_DEFAULT='Claude/現金流量預測';
+
+const msalConfig={
+  auth:{
+    clientId:'17a7b643-c2b3-4c00-b8c2-73040425830b',
+    authority:'https://login.microsoftonline.com/bde3feff-2c6c-4cb7-b2e4-789e237185a3',
+    redirectUri:window.location.origin+window.location.pathname,
+  },
+  cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+};
+let msalInstance=null;
+const SCOPES=['Files.ReadWrite.All','Sites.ReadWrite.All'];
+let currentAccount=null;
+
+async function getToken(){
+  if(!msalInstance)throw new Error('MSAL 尚未初始化');
+  const req={scopes:SCOPES,account:currentAccount};
+  try{const r=await msalInstance.acquireTokenSilent(req);return r.accessToken;}
+  catch(e){const r=await msalInstance.acquireTokenPopup(req);return r.accessToken;}
+}
+
+async function getDriveId(token){
+  const lib=localStorage.getItem('sp_library')||SP_LIBRARY_DEFAULT;
+  const cacheKey='sp_drive_id_'+lib;
+  const cached=sessionStorage.getItem(cacheKey);
+  if(cached)return cached;
+  const site=localStorage.getItem('sp_site')||SP_SITE_DEFAULT;
+  const res=await fetch(`https://graph.microsoft.com/v1.0/sites/${site}/drives`,{headers:{Authorization:'Bearer '+token}});
+  if(!res.ok)throw new Error('無法取得 drives: HTTP '+res.status);
+  const data=await res.json();
+  const drive=data.value.find(d=>d.name===lib);
+  if(!drive)throw new Error('找不到文件庫「'+lib+'」，可用：'+data.value.map(d=>d.name).join(', '));
+  sessionStorage.setItem(cacheKey,drive.id);
+  return drive.id;
+}
+
+async function getSpUrl(token){
+  const driveId=await getDriveId(token);
+  const folder=localStorage.getItem('sp_folder')||SP_FOLDER_DEFAULT;
+  const encodedFolder=folder.split('/').map(encodeURIComponent).join('/');
+  return `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encodedFolder}/cashflow_data.json:/content`;
+}
+
+async function login(){
+  try{
+    const r=await msalInstance.loginPopup({scopes:SCOPES});
+    currentAccount=r.account;
+    hideLoginOverlay();
+    updateAuthUI();
+    await loadData();
+  }catch(e){
+    document.getElementById('overlay-status').textContent='登入失敗：'+e.message;
+  }
+}
+
+async function logout(){
+  try{await msalInstance.logoutPopup({account:currentAccount});}catch(e){}
+  currentAccount=null;
+  updateAuthUI();
+  showLoginOverlay();
+}
+
+function showLoginOverlay(){
+  document.getElementById('login-section').style.display='flex';
+  document.querySelector('.shell').style.display='none';
+}
+function hideLoginOverlay(){
+  document.getElementById('login-section').style.display='none';
+  document.querySelector('.shell').style.display='grid';
+}
+
+function updateAuthUI(){
+  const loginBtn=document.getElementById('auth-login-btn');
+  const userInfo=document.getElementById('auth-user-info');
+  const userName=document.getElementById('auth-user-name');
+  if(currentAccount){
+    loginBtn.style.display='none';
+    userInfo.style.display='block';
+    userName.textContent=currentAccount.name||currentAccount.username;
+  }else{
+    loginBtn.style.display='block';
+    userInfo.style.display='none';
+  }
+}
+
+async function loadData(){
+  setSave('載入中...','saving');
+  if(!currentAccount){setSave('未登入','err');return;}
+  try{
+    const token=await getToken();
+    const url=await getSpUrl(token);
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
+    if(res.ok){
+      const d=await res.json();
+      ['seasons','activeSeason','monthData','transfers','coView','editorCo','tplIncome','tplMonthly','tplPeriodic'].forEach(k=>{if(d[k]!==undefined)ST[k]=d[k];});
+      COS.forEach(c=>{
+        if(!ST.tplIncome[c.id])ST.tplIncome[c.id]=[];
+        if(!ST.tplMonthly[c.id])ST.tplMonthly[c.id]=[];
+        if(!ST.tplPeriodic[c.id])ST.tplPeriodic[c.id]=[];
+      });
+      // migrate old array format to object - distribute to all companies
+      if(Array.isArray(ST.tplPeriodic)){
+        const old=ST.tplPeriodic;
+        ST.tplPeriodic={};
+        COS.forEach(c=>{ST.tplPeriodic[c.id]=old.map(t=>({...t,id:uid()}));});
+      }
+      setSave('已載入 SharePoint','ok');
+    }else if(res.status===404){
+      loadDefaults();
+      setSave('首次使用，套用預設','ok');
+      await saveNow();
+    }else{
+      const errText=await res.text();
+      throw new Error('HTTP '+res.status+': '+errText.slice(0,100));
+    }
+  }catch(e){
+    console.error('載入失敗',e);
+    loadDefaults();
+    setSave('載入失敗：'+e.message,'err');
+  }
+  renderForecast();
+  renderSettings();
+}
+
+async function saveNow(){
+  if(!currentAccount)return;
+  setSave('儲存中...','saving');
+  try{
+    const token=await getToken();
+    const url=await getSpUrl(token);
+    const res=await fetch(url,{method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(ST)});
+    if(!res.ok){const t=await res.text();throw new Error('HTTP '+res.status+': '+t.slice(0,100));}
+    setSave('已儲存 '+new Date().toLocaleTimeString('zh-TW'),'ok');
+  }catch(e){
+    console.error('儲存失敗',e);
+    setSave('儲存失敗：'+e.message,'err');
+  }
+}
+
+function scheduleSave(){
+  setSave('儲存中...','saving');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveNow,800);
+}
+function setSave(msg,state){
+  const dot=document.getElementById('sdot'),el=document.getElementById('smsg');
+  if(el)el.textContent=msg;
+  if(dot){dot.className='sdot';if(state==='saving')dot.classList.add('saving');else if(state==='err')dot.classList.add('err');}
+}
+
+// ═══════════════════════════════════
+// DEFAULTS
+// ═══════════════════════════════════
+function loadDefaults(){
+  ST.seasons=[
+    {key:'S1-2026',s:'S1',year:2026,opening:{HQ:200000,A01:150000,A02:100000,BC:80000}},
+    {key:'S2-2026',s:'S2',year:2026,opening:{HQ:200000,A01:150000,A02:100000,BC:80000}},
+    {key:'S3-2026',s:'S3',year:2026,opening:{HQ:200000,A01:150000,A02:100000,BC:80000}},
+  ];
+  ST.activeSeason='S3-2026';
+  ST.tplIncome={
+    HQ:[{id:uid(),name:'管理服務費收入',amount:30000,note:''}],
+    A01:[{id:uid(),name:'課程續報費',amount:280000,note:'學期期末入帳'},{id:uid(),name:'新生零星報名',amount:20000,note:''}],
+    A02:[{id:uid(),name:'課程續報費',amount:220000,note:'學期期末入帳'},{id:uid(),name:'新生零星報名',amount:15000,note:''}],
+    BC:[{id:uid(),name:'課程續報費',amount:180000,note:'學期期末入帳'},{id:uid(),name:'新生零星報名',amount:12000,note:''}],
+  };
+  ST.tplMonthly={
+    HQ:[{id:uid(),name:'管理薪資',amount:80000,note:''},{id:uid(),name:'辦公室租金',amount:15000,note:''},{id:uid(),name:'辦公雜費',amount:5000,note:''}],
+    A01:[{id:uid(),name:'教練薪資',amount:120000,note:''},{id:uid(),name:'場地租金',amount:45000,note:''},{id:uid(),name:'水電費',amount:12000,note:''},{id:uid(),name:'清潔耗材',amount:3000,note:''}],
+    A02:[{id:uid(),name:'教練薪資',amount:100000,note:''},{id:uid(),name:'場地租金',amount:38000,note:''},{id:uid(),name:'水電費',amount:10000,note:''},{id:uid(),name:'清潔耗材',amount:2500,note:''}],
+    BC:[{id:uid(),name:'教練薪資',amount:90000,note:''},{id:uid(),name:'場地租金',amount:32000,note:''},{id:uid(),name:'水電費',amount:8000,note:''},{id:uid(),name:'清潔耗材',amount:2000,note:''}],
+  };
+  ST.tplPeriodic={
+    HQ:[{id:uid(),name:'軟體授權費',amount:18000,freq:'annual',note:''},{id:uid(),name:'房屋稅',amount:25000,freq:'annual',note:''}],
+    A01:[{id:uid(),name:'團保費',amount:20000,freq:'annual',note:''},{id:uid(),name:'公共意外責任險',amount:15000,freq:'annual',note:''},{id:uid(),name:'設備維護費',amount:10000,freq:'quarterly',note:''}],
+    A02:[{id:uid(),name:'團保費',amount:20000,freq:'annual',note:''},{id:uid(),name:'公共意外責任險',amount:15000,freq:'annual',note:''},{id:uid(),name:'設備維護費',amount:10000,freq:'quarterly',note:''}],
+    BC:[{id:uid(),name:'火險',amount:8000,freq:'annual',note:''},{id:uid(),name:'團保費',amount:20000,freq:'annual',note:''}],
+  };
+  ST.monthData={};ST.transfers=[];
+}
+
+// ═══════════════════════════════════
+// SEASON / MONTH HELPERS
+// ═══════════════════════════════════
+function getSeasonObj(key){return ST.seasons.find(s=>s.key===key);}
+function getMths(sKey){
+  const obj=getSeasonObj(sKey);if(!obj)return[];
+  const def=SEAS_DEF[obj.s];
+  return def.months.map(m=>{
+    let y=obj.year;if(obj.s==='S3'&&m<=2)y=obj.year+1;
+    return{ym:`${y}-${String(m).padStart(2,'0')}`,m,y};
+  });
+}
+function seasonRange(s,year){
+  return s==='S1'?`${year}/3–${year}/6`:s==='S2'?`${year}/7–${year}/10`:`${year}/11–${year+1}/2`;
+}
+function seasonLabel(key){
+  const o=getSeasonObj(key);if(!o)return key;
+  return`${SEAS_DEF[o.s].name} ${o.year}`;
+}
+function seasonColor(s){return SEAS_DEF[s]?.color||'#888';}
+function mLabel(ym){return parseInt(ym.split('-')[1])+'月';}
+
+// Get or init month data for a company
+function getMonthCo(ym,coId){
+  if(!ST.monthData[ym])ST.monthData[ym]={};
+  if(!ST.monthData[ym][coId]){
+    const expTpls=ST.tplMonthly[coId]||[];
+    const incTpls=ST.tplIncome[coId]||[];
+    ST.monthData[ym][coId]={
+      income:incTpls.map(t=>({id:uid(),name:t.name,amount:t.amount,isRenew:false})),
+      expense:expTpls.map(t=>({id:uid(),name:t.name,amount:t.amount,note:''})),
+      _fromTpl:(expTpls.length>0||incTpls.length>0),
+    };
+    scheduleSave();
+  }
+  return ST.monthData[ym][coId];
+}
+
+// ═══════════════════════════════════
+// SEASON SELECTOR COMPONENT
+// ═══════════════════════════════════
+function renderSeasonSelector(containerId, activeSeason, onClickFn, showAdd){
+  const el=document.getElementById(containerId);if(!el)return;
+  let h=ST.seasons.map(s=>`
+    <div class="ssb${s.key===activeSeason?' active':''}" onclick="${onClickFn}('${s.key}')">
+      <div class="ssb-dot" style="background:${seasonColor(s.s)}"></div>
+      <div>
+        <div class="ssb-name">${SEAS_DEF[s.s].name} <span style="font-weight:400;font-size:10px;color:var(--text2)">${s.year}</span></div>
+        <div class="ssb-range">${seasonRange(s.s,s.year)}</div>
+      </div>
+    </div>`).join('');
+  if(showAdd) h+=`<button class="ssb-add" onclick="goto('seasons',null)">＋ 新增期別</button>`;
+  el.innerHTML=h;
+}
+
+// ═══════════════════════════════════
+// FORECAST
+// ═══════════════════════════════════
+function switchForecastSeason(key){ST.activeSeason=key;scheduleSave();renderForecast();}
+
+function compute(sKey){
+  const mths=getMths(sKey);const mks=mths.map(m=>m.ym);
+  const sObj=getSeasonObj(sKey);
+  const opening=sObj?sObj.opening:{};
+  const res={};
+  COS.forEach(co=>{
+    const tI=mks.map(ym=>{
+      const d=ST.monthData[ym]?.[co.id];
+      if(!d)return 0;
+      let v=(d.income||[]).reduce((s,i)=>s+i.amount,0);
+      ST.transfers.filter(t=>t.to===co.id&&t.ym===ym).forEach(t=>v+=t.amount);
+      return v;
+    });
+    const tE=mks.map(ym=>{
+      const d=ST.monthData[ym]?.[co.id];
+      let v=d?(d.expense||[]).reduce((s,i)=>s+i.amount,0):0;
+      ST.transfers.filter(t=>t.from===co.id&&t.ym===ym).forEach(t=>v+=t.amount);
+      return v;
+    });
+    const net=mks.map((_,i)=>tI[i]-tE[i]);
+    const bal=[];let cur=opening[co.id]||0;net.forEach(n=>{cur+=n;bal.push(cur);});
+    const iRows=mks.map(ym=>ST.monthData[ym]?.[co.id]?.income||[]);
+    const eRows=mks.map(ym=>ST.monthData[ym]?.[co.id]?.expense||[]);
+    res[co.id]={tI,tE,net,bal,iRows,eRows};
+  });
+  const allI=mks.map((_,i)=>COS.reduce((s,c)=>s+res[c.id].tI[i],0));
+  const allE=mks.map((_,i)=>COS.reduce((s,c)=>s+res[c.id].tE[i],0));
+  const allNet=mks.map((_,i)=>allI[i]-allE[i]);
+  const allBal=[];const openAll=COS.reduce((s,c)=>s+(opening[c.id]||0),0);
+  let cur2=openAll;allNet.forEach(n=>{cur2+=n;allBal.push(cur2);});
+  res.ALL={tI:allI,tE:allE,net:allNet,bal:allBal};
+  return{mths,mks,res};
+}
+
+const fN=n=>n===0?'<span class="dash">—</span>':Math.round(n).toLocaleString('zh-TW');
+function fNc(n,force){const v=Math.round(n);if(v===0&&!force)return'<span class="dash">—</span>';return`<span class="${v<0?'cn':v===0?'dash':v<10000?'cw':'cp'}">${v.toLocaleString('zh-TW')}</span>`;}
+
+function renderForecast(){
+  if(!ST.seasons.length){document.getElementById('ftbl').innerHTML='';document.getElementById('srow').innerHTML='';document.getElementById('alerts').innerHTML='<div class="alert warn">尚未建立任何期別，請至「期別管理」新增。</div>';document.getElementById('period-lbl').textContent='';renderSeasonSelector('forecast-season-sel',ST.activeSeason,'switchForecastSeason',true);return;}
+  if(!getSeasonObj(ST.activeSeason))ST.activeSeason=ST.seasons[0].key;
+  renderSeasonSelector('forecast-season-sel',ST.activeSeason,'switchForecastSeason',true);
+  const sKey=ST.activeSeason;const sObj=getSeasonObj(sKey);
+  document.getElementById('period-lbl').textContent=`${seasonLabel(sKey)} — ${seasonRange(sObj.s,sObj.year)}`;
+  const{mths,mks,res}=compute(sKey);const co=ST.coView;const d=res[co];
+  const openV=co==='ALL'?COS.reduce((s,c)=>s+(sObj.opening[c.id]||0),0):(sObj.opening[co]||0);
+  const endB=d.bal[d.bal.length-1],minB=Math.min(...d.bal);
+  const sumI=d.tI.reduce((a,b)=>a+b,0),sumE=d.tE.reduce((a,b)=>a+b,0);
+  document.getElementById('srow').innerHTML=`
+    <div class="sc"><div class="sc-lbl">期初餘額</div><div class="sc-val">${Math.round(openV).toLocaleString('zh-TW')}</div><div class="sc-sub">NT$</div></div>
+    <div class="sc"><div class="sc-lbl">本期總收入</div><div class="sc-val" style="color:var(--green)">${Math.round(sumI).toLocaleString('zh-TW')}</div><div class="sc-sub">NT$</div></div>
+    <div class="sc"><div class="sc-lbl">本期總支出</div><div class="sc-val" style="color:var(--red)">${Math.round(sumE).toLocaleString('zh-TW')}</div><div class="sc-sub">NT$</div></div>
+    <div class="sc"><div class="sc-lbl">期末預估餘額</div><div class="sc-val" style="color:${endB<0?'var(--red)':endB<50000?'var(--amber)':'var(--green)'}">${Math.round(endB).toLocaleString('zh-TW')}</div><div class="sc-sub">最低 ${Math.round(minB).toLocaleString('zh-TW')}</div></div>`;
+  const lowMs=mths.filter((_,i)=>d.bal[i]<0),wMs=mths.filter((_,i)=>d.bal[i]>=0&&d.bal[i]<50000);
+  document.getElementById('alerts').innerHTML=
+    lowMs.length?`<div class="alert danger">⚠ 資金缺口：${lowMs.map(m=>m.m+'月').join('、')} 預估餘額為負。</div>`:
+    wMs.length?`<div class="alert warn">注意：${wMs.map(m=>m.m+'月').join('、')} 餘額低於 5 萬。</div>`:'';
+  const nc=mths.length;
+  let h=`<thead><tr><th class="lc">項目</th>${mths.map(m=>`<th>${m.m}月<span class="msub">${m.ym}</span></th>`).join('')}</tr></thead><tbody>`;
+  function iSec(cid){
+    let s='';const cd=res[cid];const names=[];
+    mks.forEach(ym=>{(cd.iRows[mks.indexOf(ym)]||[]).forEach(i=>{if(!names.includes(i.name))names.push(i.name);});});
+    names.forEach(name=>{
+      const vals=mks.map(ym=>{const r=cd.iRows[mks.indexOf(ym)]||[];const it=r.find(i=>i.name===name);return it?it.amount:0;});
+      if(vals.every(v=>v===0))return;
+      const isR=mks.some(ym=>(cd.iRows[mks.indexOf(ym)]||[]).find(i=>i.name===name&&i.isRenew));
+      s+=`<tr><td class="lc sub">${escH(name)}${isR?'<span class="tag renew">續報</span>':''}</td>${vals.map(v=>`<td>${fN(v)}</td>`).join('')}</tr>`;
+    });
+    const tx=mks.map(ym=>ST.transfers.filter(t=>t.to===cid&&t.ym===ym).reduce((s,t)=>s+t.amount,0));
+    if(tx.some(v=>v>0))s+=`<tr><td class="lc sub" style="color:var(--purple)">調撥收入</td>${tx.map(v=>`<td>${fN(v)}</td>`).join('')}</tr>`;
+    return s;
+  }
+  function eSec(cid){
+    let s='';const cd=res[cid];const names=[];
+    mks.forEach(ym=>{(cd.eRows[mks.indexOf(ym)]||[]).forEach(i=>{if(!names.includes(i.name))names.push(i.name);});});
+    names.forEach(name=>{
+      const vals=mks.map(ym=>{const r=cd.eRows[mks.indexOf(ym)]||[];const it=r.find(i=>i.name===name);return it?it.amount:0;});
+      if(vals.every(v=>v===0))return;
+      s+=`<tr><td class="lc sub">${escH(name)}</td>${vals.map(v=>`<td>${fN(v)}</td>`).join('')}</tr>`;
+    });
+    const tx=mks.map(ym=>ST.transfers.filter(t=>t.from===cid&&t.ym===ym).reduce((s,t)=>s+t.amount,0));
+    if(tx.some(v=>v>0))s+=`<tr><td class="lc sub" style="color:var(--purple)">調撥轉出</td>${tx.map(v=>`<td>${fN(v)}</td>`).join('')}</tr>`;
+    return s;
+  }
+  if(co==='ALL'){
+    h+=`<tr class="grp"><td colspan="${nc+1}">▸ 收入明細</td></tr>`;
+    COS.forEach(c=>{if(res[c.id].tI.every(v=>v===0))return;h+=`<tr style="background:var(--bg)"><td class="lc" style="font-size:10px;font-weight:700;color:${c.color};padding:7px 10px 2px"><span class="cdot ${c.dc}"></span>${c.short}</td>${mks.map((_,i)=>`<td style="background:var(--bg)">${fNc(res[c.id].tI[i])}</td>`).join('')}</tr>`;h+=iSec(c.id);});
+    h+=`<tr class="sub-r"><td class="lc">收入合計</td>${d.tI.map(v=>`<td>${fNc(v,true)}</td>`).join('')}</tr>`;
+    h+=`<tr class="grp"><td colspan="${nc+1}">▸ 支出明細</td></tr>`;
+    COS.forEach(c=>{if(res[c.id].tE.every(v=>v===0))return;h+=`<tr style="background:var(--bg)"><td class="lc" style="font-size:10px;font-weight:700;color:${c.color};padding:7px 10px 2px"><span class="cdot ${c.dc}"></span>${c.short}</td>${mks.map((_,i)=>`<td style="background:var(--bg)">${fNc(res[c.id].tE[i])}</td>`).join('')}</tr>`;h+=eSec(c.id);});
+    h+=`<tr class="sub-r"><td class="lc">支出合計</td>${d.tE.map(v=>`<td>${fNc(v,true)}</td>`).join('')}</tr>`;
+  } else {
+    h+=`<tr class="grp"><td colspan="${nc+1}">▸ 收入明細</td></tr>`;h+=iSec(co);h+=`<tr class="sub-r"><td class="lc">收入合計</td>${d.tI.map(v=>`<td>${fNc(v,true)}</td>`).join('')}</tr>`;
+    h+=`<tr class="grp"><td colspan="${nc+1}">▸ 支出明細</td></tr>`;h+=eSec(co);h+=`<tr class="sub-r"><td class="lc">支出合計</td>${d.tE.map(v=>`<td>${fNc(v,true)}</td>`).join('')}</tr>`;
+  }
+  h+=`<tr class="sub-r"><td class="lc">月淨現金流</td>${d.net.map(v=>`<td>${fNc(v,true)}</td>`).join('')}</tr>`;
+  h+=`<tr class="bal-r"><td class="lc">期末銀行餘額</td>${d.bal.map(v=>`<td><span class="${v<0?'cn':v<50000?'cw':'cp'}">${Math.round(v).toLocaleString('zh-TW')}</span></td>`).join('')}</tr>`;
+  if(co==='ALL')COS.forEach(c=>{const cb=res[c.id].bal;h+=`<tr><td class="lc sub" style="color:${c.color}"><span class="cdot ${c.dc}"></span>${c.short} 餘額</td>${cb.map(v=>`<td style="font-size:10px"><span class="${v<0?'cn':v<20000?'cw':'cp'}">${Math.round(v).toLocaleString('zh-TW')}</span></td>`).join('')}</tr>`;});
+  document.getElementById('ftbl').innerHTML=h+'</tbody>';
+}
+
+// ═══════════════════════════════════
+// MONTHLY EDITOR
+// ═══════════════════════════════════
+function switchMonthlySeason(key){
+  ST.activeSeason=key;
+  const mths=getMths(key);
+  const mks=mths.map(m=>m.ym);
+  if(!ST.editorMonth||!mks.includes(ST.editorMonth)) ST.editorMonth=mks[0];
+  scheduleSave();
+  renderMonthlyPage();
+}
+
+function renderMonthlyPage(){
+  if(!ST.seasons.length){document.getElementById('month-editor-body').innerHTML='<div class="alert warn" style="margin-top:8px">尚未建立任何期別，請至「期別管理」新增。</div>';renderSeasonSelector('monthly-season-sel',ST.activeSeason,'switchMonthlySeason',true);document.getElementById('month-tabs').innerHTML='';return;}
+  if(!getSeasonObj(ST.activeSeason))ST.activeSeason=ST.seasons[0].key;
+  renderSeasonSelector('monthly-season-sel',ST.activeSeason,'switchMonthlySeason',true);
+  const mths=getMths(ST.activeSeason);
+  const mks=mths.map(m=>m.ym);
+  if(!ST.editorMonth||!mks.includes(ST.editorMonth)) ST.editorMonth=mks[0];
+  document.getElementById('month-tabs').innerHTML=mths.map(m=>`
+    <button class="month-tab${m.ym===ST.editorMonth?' active':''}" onclick="setEditorMonth('${m.ym}',this)">${m.m}月<span style="font-size:10px;color:var(--text3);margin-left:4px">${m.ym}</span></button>`).join('');
+  renderMonthEditor();
+}
+
+function setEditorMonth(ym,btn){
+  ST.editorMonth=ym;
+  document.querySelectorAll('.month-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderMonthEditor();
+}
+function setEditorCo(coId,btn){
+  ST.editorCo=coId;
+  document.querySelectorAll('.co-editor-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderMonthEditor();
+}
+
+function renderMonthEditor(){
+  const ym=ST.editorMonth;const coId=ST.editorCo;
+  if(!ym||!coId){document.getElementById('month-editor-body').innerHTML='';return;}
+  const co=COS.find(c=>c.id===coId);
+  const data=getMonthCo(ym,coId);
+  const income=data.income||[];const expense=data.expense||[];
+  const incSum=income.reduce((s,i)=>s+i.amount,0);
+  const expSum=expense.reduce((s,i)=>s+i.amount,0);
+  const net=incSum-expSum;
+  let h=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="font-size:13px;font-weight:700;color:${co.color}"><span class="cdot ${co.dc}"></span>${co.name} — ${mLabel(ym)}</div>
+    ${data._fromTpl?`<span class="init-badge">✦ 已自動帶入範本科目</span>`:''}
+    <div style="margin-left:auto;display:flex;gap:14px;font-size:12px">
+      <span style="color:var(--green)">收入 ${incSum.toLocaleString('zh-TW')}</span>
+      <span style="color:var(--red)">支出 ${expSum.toLocaleString('zh-TW')}</span>
+      <span style="font-weight:700;color:${net>=0?'var(--green)':'var(--red)'}">淨 ${net>=0?'+':''}${net.toLocaleString('zh-TW')}</span>
+    </div>
+  </div>`;
+  // income
+  h+=`<div class="fsec"><div class="fsh">
+    <div class="fst">收入</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn sm ghost" onclick="openQAIncome('${ym}','${coId}',this)">從範本新增 ▾</button>
+      <button class="btn sm" onclick="addMonthIncome('${ym}','${coId}')">＋ 空白</button>
+    </div>
+  </div><div class="ig">`;
+  if(!income.length){h+=`<div style="padding:10px;font-size:12px;color:var(--text3);text-align:center">尚無收入項目</div>`;}
+  else{
+    h+=`<div class="irow hdr"><span>項目名稱</span><span>金額 (NT$)</span><span>備註</span><span></span></div>`;
+    income.forEach(item=>{
+      h+=`<div class="irow">
+        <input type="text" value="${escH(item.name)}" placeholder="項目名稱" oninput="updMI('${ym}','${coId}','income','${item.id}','name',this.value)">
+        <input type="number" value="${item.amount}" min="0" step="100" oninput="updMI('${ym}','${coId}','income','${item.id}','amount',this.value)">
+        <input type="text" value="${escH(item.note||'')}" placeholder="備註" oninput="updMI('${ym}','${coId}','income','${item.id}','note',this.value)">
+        <button class="btn-del" onclick="delMI('${ym}','${coId}','income','${item.id}')">✕</button>
+      </div>`;
+    });
+  }
+  h+=`</div></div>`;
+  // expense
+  h+=`<div class="fsec"><div class="fsh">
+    <div class="fst">支出</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn sm ghost" onclick="openQAExpense('${ym}','${coId}',this)">從範本新增 ▾</button>
+      <button class="btn sm" onclick="addMonthExpense('${ym}','${coId}')">＋ 空白</button>
+    </div>
+  </div><div class="ig">`;
+  if(!expense.length){h+=`<div style="padding:10px;font-size:12px;color:var(--text3);text-align:center">尚無支出項目</div>`;}
+  else{
+    h+=`<div class="irow hdr"><span>項目名稱</span><span>金額 (NT$)</span><span>備註</span><span></span></div>`;
+    expense.forEach(item=>{
+      h+=`<div class="irow">
+        <input type="text" value="${escH(item.name)}" placeholder="項目名稱" oninput="updMI('${ym}','${coId}','expense','${item.id}','name',this.value)">
+        <input type="number" value="${item.amount}" min="0" step="100" oninput="updMI('${ym}','${coId}','expense','${item.id}','amount',this.value)">
+        <input type="text" value="${escH(item.note||'')}" placeholder="備註" oninput="updMI('${ym}','${coId}','expense','${item.id}','note',this.value)">
+        <button class="btn-del" onclick="delMI('${ym}','${coId}','expense','${item.id}')">✕</button>
+      </div>`;
+    });
+  }
+  h+=`</div></div>`;
+  document.getElementById('month-editor-body').innerHTML=h;
+}
+
+function addMonthIncome(ym,coId){getMonthCo(ym,coId).income.push({id:uid(),name:'',amount:0,isRenew:false});renderMonthEditor();scheduleSave();}
+function addMonthExpense(ym,coId){getMonthCo(ym,coId).expense.push({id:uid(),name:'',amount:0,note:''});renderMonthEditor();scheduleSave();}
+function delMI(ym,coId,type,id){const d=getMonthCo(ym,coId);d[type]=d[type].filter(i=>i.id!==id);renderMonthEditor();scheduleSave();}
+function updMI(ym,coId,type,id,field,val){
+  const d=getMonthCo(ym,coId);const item=d[type].find(i=>i.id===id);if(!item)return;
+  if(field==='amount')item[field]=parseFloat(val)||0;
+  else if(field==='isRenew')item[field]=val;
+  else item[field]=val;
+  scheduleSave();
+}
+
+// ═══════════════════════════════════
+// QUICK-ADD MENUS
+// ═══════════════════════════════════
+function openQAIncome(ym,coId,btn){
+  closeQA();
+  const tpls=(ST.tplIncome[coId]||[]).filter(t=>t.name.trim());
+  let h='';
+  if(tpls.length){
+    h+=`<div class="qa-group-lbl">收入範本</div>`;
+    h+=`<div class="qa-item all-item" onclick="qaApplyAllIncome('${ym}','${coId}')">＋ 帶入全部 ${tpls.length} 個收入科目</div>`;
+    tpls.forEach(t=>h+=`<div class="qa-item" data-name="${escH(t.name)}" data-amt="${t.amount}" onclick="qaPickIncome(this,'${ym}','${coId}')"><span class="qa-name">${escH(t.name)}${t.note?'<span style="font-size:10px;color:var(--text3);margin-left:5px">'+escH(t.note)+'</span>':''}</span><span class="qa-amt">${t.amount.toLocaleString('zh-TW')}</span></div>`);
+  } else {
+    h=`<div class="qa-empty">尚無收入範本<br>請至「收支範本庫」設定</div>`;
+  }
+  showQAMenu(h,btn);
+}
+function openQAExpense(ym,coId,btn){
+  closeQA();
+  const monthly=(ST.tplMonthly[coId]||[]).filter(t=>t.name.trim());
+  const periodic=(ST.tplPeriodic[coId]||[]).filter(t=>t.name.trim());
+  let h='';
+  if(monthly.length){
+    h+=`<div class="qa-group-lbl">每月固定支出</div>`;
+    h+=`<div class="qa-item all-item" onclick="qaApplyAllExpense('${ym}','${coId}')">＋ 帶入全部 ${monthly.length} 個固定科目</div>`;
+    monthly.forEach(t=>{
+      const meta=[t.note].filter(Boolean).join(' · ');
+      h+=`<div class="qa-item" data-name="${escH(t.name)}" data-amt="${t.amount}" data-note="${escH(t.note||'')}" onclick="qaPickExpense(this,'${ym}','${coId}')"><div class="qa-item-inner"><div class="qa-name">${escH(t.name)}</div>${meta?`<div class="qa-meta">${escH(t.note)}</div>`:''}</div><span class="qa-amt">${t.amount>0?t.amount.toLocaleString('zh-TW'):'—'}</span></div>`;
+    });
+  }
+  if(periodic.length){
+    h+=`<div class="qa-group-lbl">週期性 / 年度支出</div>`;
+    const FL={bimonthly:'每2個月',quarterly:'每3個月',seasonal:'每學期',semiannual:'每半年',annual:'每年'};
+    periodic.forEach(t=>{
+      const freqLbl=FL[t.freq]||t.freq||'';
+      const meta=[freqLbl,t.note].filter(Boolean).join(' · ');
+      h+=`<div class="qa-item" data-name="${escH(t.name)}" data-amt="${t.amount}" data-note="${escH(t.note||'')}" onclick="qaPickExpense(this,'${ym}','${coId}')"><div class="qa-item-inner"><div class="qa-name">${escH(t.name)}</div>${meta?`<div class="qa-meta">${escH(meta)}</div>`:''}</div><span class="qa-amt">${t.amount>0?t.amount.toLocaleString('zh-TW'):'—'}</span></div>`;
+    });
+  }
+  if(!h)h=`<div class="qa-empty">尚無支出範本<br>請至「收支範本庫」設定</div>`;
+  showQAMenu(h,btn);
+}
+function showQAMenu(h,btn){
+  const menu=document.getElementById('qa-menu');
+  menu.innerHTML=h;
+  const rect=btn.getBoundingClientRect();
+  menu.style.top=(rect.bottom+window.scrollY+4)+'px';
+  menu.style.left=Math.min(rect.left+window.scrollX,window.innerWidth-280)+'px';
+  menu.classList.add('open');
+  setTimeout(()=>document.addEventListener('click',closeQA,{once:true}),0);
+}
+function closeQA(){document.getElementById('qa-menu').classList.remove('open');}
+function qaPickIncome(el,ym,coId){qaApplyIncome(ym,coId,el.dataset.name,parseFloat(el.dataset.amt)||0);}
+function qaPickExpense(el,ym,coId){qaApplyExpense(ym,coId,el.dataset.name,parseFloat(el.dataset.amt)||0,el.dataset.note||'');}
+function qaApplyIncome(ym,coId,name,amount){closeQA();getMonthCo(ym,coId).income.push({id:uid(),name,amount,isRenew:false});renderMonthEditor();scheduleSave();}
+function qaApplyAllIncome(ym,coId){
+  closeQA();const d=getMonthCo(ym,coId);
+  (ST.tplIncome[coId]||[]).filter(t=>t.name.trim()&&!d.income.find(i=>i.name===t.name))
+    .forEach(t=>d.income.push({id:uid(),name:t.name,amount:t.amount,isRenew:false}));
+  renderMonthEditor();scheduleSave();
+}
+function qaApplyExpense(ym,coId,name,amount,note=''){closeQA();getMonthCo(ym,coId).expense.push({id:uid(),name,amount,note:note||''});renderMonthEditor();scheduleSave();}
+function qaApplyAllExpense(ym,coId){
+  closeQA();const d=getMonthCo(ym,coId);
+  (ST.tplMonthly[coId]||[]).filter(t=>t.name.trim()&&!d.expense.find(e=>e.name===t.name))
+    .forEach(t=>d.expense.push({id:uid(),name:t.name,amount:t.amount,note:''}));
+  renderMonthEditor();scheduleSave();
+}
+
+// ═══════════════════════════════════
+// TRANSFERS
+// ═══════════════════════════════════
+function renderTransfers(){
+  renderSeasonSelector('transfer-season-sel',ST.activeSeason,'switchTransferSeason',false);
+  const mths=getMths(ST.activeSeason);const mks=mths.map(m=>m.ym);
+  const list=document.getElementById('tlist');
+  const inSeason=ST.transfers.filter(t=>mks.includes(t.ym));
+  if(!inSeason.length){list.innerHTML=`<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center">本期尚無調撥記錄</div>`;return;}
+  list.innerHTML=inSeason.map(t=>`
+    <div class="trow">
+      <input type="text" value="${escH(t.name)}" placeholder="說明" oninput="updT('${t.id}','name',this.value)">
+      <select onchange="updT('${t.id}','from',this.value)">${COS.map(c=>`<option value="${c.id}"${t.from===c.id?' selected':''}>${c.short}</option>`).join('')}</select>
+      <span class="arr">→</span>
+      <select onchange="updT('${t.id}','to',this.value)">${COS.map(c=>`<option value="${c.id}"${t.to===c.id?' selected':''}>${c.short}</option>`).join('')}</select>
+      <input type="number" value="${t.amount}" min="0" step="1000" oninput="updT('${t.id}','amount',this.value)">
+      <button class="btn-del" onclick="delT('${t.id}')">✕</button>
+    </div>
+    <div style="padding:2px 0 8px">
+      <select onchange="updT('${t.id}','ym',this.value)" style="max-width:200px">
+        ${mks.map(ym=>`<option value="${ym}"${t.ym===ym?' selected':''}>${mLabel(ym)} (${ym})</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+function switchTransferSeason(key){ST.activeSeason=key;scheduleSave();renderTransfers();}
+function addTransfer(){
+  const mths=getMths(ST.activeSeason);if(!mths.length)return;
+  ST.transfers.push({id:uid(),name:'',from:'HQ',to:'A01',amount:0,ym:mths[0].ym});
+  renderTransfers();scheduleSave();
+}
+function delT(id){ST.transfers=ST.transfers.filter(t=>t.id!==id);renderTransfers();scheduleSave();}
+function updT(id,field,val){const t=ST.transfers.find(t=>t.id===id);if(!t)return;t[field]=field==='amount'?parseFloat(val)||0:val;scheduleSave();}
+
+// ═══════════════════════════════════
+// TEMPLATE LIBRARY
+// ═══════════════════════════════════
+// active co per template type
+let tplCo={income:'HQ',expense:'HQ',periodic:'HQ'};
+function switchTplTab(name,btn){
+  document.querySelectorAll('.tpl-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tpl-panel').forEach(p=>p.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('tpl-panel-'+name).classList.add('active');
+}
+function switchTplCo(type,coId,btn){
+  tplCo[type]=coId;
+  const tabGroup=document.getElementById('tpl-'+type+'-co-tabs');
+  if(tabGroup)tabGroup.querySelectorAll('.tpl-co-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  // update add button target
+  const addBtn=document.getElementById('tpl-'+type+'-add-btn');
+  if(addBtn)addBtn.setAttribute('onclick',(type==='income'?'addTplI':type==='expense'?'addTplM':'addTplPeriodic')+"('"+coId+"')");
+  const titleEl=document.getElementById('tpl-periodic-co-title');
+  if(type==='periodic'&&titleEl){const co=COS.find(c=>c.id===coId);titleEl.textContent='週期性支出 — '+(co?co.short:coId);}
+  renderTplCo(type,coId);
+  // Sync expense ↔ periodic tabs
+  if(type==='expense'||type==='periodic'){
+    const syncType=type==='expense'?'periodic':'expense';
+    tplCo[syncType]=coId;
+    const syncGroup=document.getElementById('tpl-'+syncType+'-co-tabs');
+    if(syncGroup){
+      syncGroup.querySelectorAll('.tpl-co-tab').forEach(b=>b.classList.remove('active'));
+      const syncBtn=syncGroup.querySelector(`[onclick*="'${coId}'"]`);
+      if(syncBtn)syncBtn.classList.add('active');
+    }
+    const syncAddBtn=document.getElementById('tpl-'+syncType+'-add-btn');
+    if(syncAddBtn)syncAddBtn.setAttribute('onclick',(syncType==='expense'?'addTplM':'addTplPeriodic')+"('"+coId+"')");
+    if(syncType==='periodic'&&titleEl){const co=COS.find(c=>c.id===coId);titleEl.textContent='週期性支出 — '+(co?co.short:coId);}
+    renderTplCo(syncType,coId);
+  }
+}
+function renderTplCo(type,coId){
+  const co=COS.find(c=>c.id===coId);
+  if(type==='income'){
+    const items=ST.tplIncome[coId]||[];
+    const titleEl=document.getElementById('tpl-income-co-title');
+    if(titleEl)titleEl.textContent='收入範本 — '+co.short;
+    let h='';
+    if(!items.length){
+      h='<div style="padding:14px;font-size:12px;color:var(--text3);text-align:center">尚未設定收入範本</div>';
+    } else {
+      h+='<div class="tpl-row with-note hdr"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>備註</span><span></span></div>';
+      items.forEach((t,idx)=>{
+        h+=`<div class="tpl-row with-note">`
+          +`<div class="sort-btns">`
+          +`<button class="btn-sort" onclick="moveTplI('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
+          +`<button class="btn-sort" onclick="moveTplI('${coId}','${t.id}',1)" ${idx===items.length-1?'disabled':''}>▼</button>`
+          +`</div>`
+          +`<input type="text" value="${escH(t.name)}" placeholder="科目名稱" oninput="updTplI('${coId}','${t.id}','name',this.value)">`
+          +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplI('${coId}','${t.id}','amount',this.value)">`
+          +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplI('${coId}','${t.id}','note',this.value)">`
+          +`<button class="btn-del" onclick="delTplI('${coId}','${t.id}')">✕</button>`
+          +'</div>';
+      });
+    }
+    document.getElementById('tpl-income-wrap').innerHTML=h;
+  } else if(type==='expense'){
+    const items=ST.tplMonthly[coId]||[];
+    const titleEl=document.getElementById('tpl-expense-co-title');
+    if(titleEl)titleEl.textContent='每月固定支出 — '+co.short;
+    let h='';
+    if(!items.length){
+      h='<div style="padding:14px;font-size:12px;color:var(--text3);text-align:center">尚未設定支出範本</div>';
+    } else {
+      h+='<div class="tpl-row with-note hdr"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>備註</span><span></span></div>';
+      items.forEach((t,idx)=>{
+        h+=`<div class="tpl-row with-note">`
+          +`<div class="sort-btns">`
+          +`<button class="btn-sort" onclick="moveTplM('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
+          +`<button class="btn-sort" onclick="moveTplM('${coId}','${t.id}',1)" ${idx===items.length-1?'disabled':''}>▼</button>`
+          +`</div>`
+          +`<input type="text" value="${escH(t.name)}" placeholder="科目名稱" oninput="updTplM('${coId}','${t.id}','name',this.value)">`
+          +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplM('${coId}','${t.id}','amount',this.value)">`
+          +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplM('${coId}','${t.id}','note',this.value)">`
+          +`<button class="btn-del" onclick="delTplM('${coId}','${t.id}')">✕</button>`
+          +'</div>';
+      });
+    }
+    document.getElementById('tpl-monthly-wrap').innerHTML=h;
+  } else {
+    // periodic - grouped by frequency, smallest period first
+    const items=(ST.tplPeriodic[coId]||[]);
+    let h='';
+    if(!items.length){
+      h='<div style="padding:14px;font-size:12px;color:var(--text3);text-align:center">尚未設定週期性支出</div>';
+    } else {
+      const FREQ_ORDER=['bimonthly','quarterly','seasonal','semiannual','annual'];
+      // Group items by freq
+      const groups={};
+      FREQ_ORDER.forEach(v=>groups[v]=[]);
+      items.forEach(t=>{
+        const key=FREQ_ORDER.includes(t.freq)?t.freq:'annual';
+        groups[key].push(t);
+      });
+      const freqLabel={bimonthly:'每2個月',quarterly:'每3個月',seasonal:'每學期（4個月）',semiannual:'每半年',annual:'每年'};
+      FREQ_ORDER.forEach(freq=>{
+        const grp=groups[freq];
+        if(!grp.length)return;
+        h+=`<div style="margin-top:10px;margin-bottom:2px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;padding:4px 0;border-bottom:1px solid var(--border)">${freqLabel[freq]}</div>`;
+        h+='<div class="tpl-row wide hdr" style="margin-top:4px"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>頻率</span><span>備註</span><span></span></div>';
+        grp.forEach((t,idx)=>{
+          h+=`<div class="tpl-row wide">`
+            +`<div class="sort-btns">`
+            +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
+            +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',1)" ${idx===grp.length-1?'disabled':''}>▼</button>`
+            +`</div>`
+            +`<input type="text" value="${escH(t.name)}" placeholder="科目名稱" oninput="updTplP('${coId}','${t.id}','name',this.value)">`
+            +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplP('${coId}','${t.id}','amount',this.value)">`
+            +`<select onchange="updTplP('${coId}','${t.id}','freq',this.value);renderTplCo('periodic','${coId}')">${PFREQS.map(f=>`<option value="${f.v}"${t.freq===f.v?' selected':''}>${f.l}</option>`).join('')}</select>`
+            +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplP('${coId}','${t.id}','note',this.value)">`
+            +`<button class="btn sm" style="padding:2px 7px;font-size:10px;background:var(--green-bg);color:var(--green);border-color:var(--green)" onclick="openPushPeriodicModal('${coId}','${t.id}')">→月</button>`
+          +`<button class="btn-del" onclick="delTplP('${coId}','${t.id}')">✕</button>`
+            +'</div>';
+        });
+      });
+    }
+    document.getElementById('tpl-periodic-wrap').innerHTML=h;
+  }
+}
+function renderTemplates(){
+  renderTplCo('income',tplCo.income);
+  renderTplCo('expense',tplCo.expense);
+  renderTplCo('periodic',tplCo.periodic);
+}
+// ── copy template names from another company ──
+function showCopyPicker(type,srcId){
+  const picker=document.getElementById('copy-'+type+'-picker');
+  if(!picker)return;
+  if(!srcId){picker.style.display='none';return;}
+  const destId=type==='income'?tplCo.income:type==='expense'?tplCo.expense:tplCo.periodic;
+  if(srcId===destId){
+    picker.style.display='none';
+    document.getElementById('copy-'+type+'-src').value='';
+    alert('來源與目標公司相同');return;
+  }
+  const srcItems=type==='income'?(ST.tplIncome[srcId]||[]):type==='expense'?(ST.tplMonthly[srcId]||[]):(ST.tplPeriodic[srcId]||[]);
+  if(!srcItems.length){
+    picker.style.display='none';
+    alert('來源公司尚無科目');return;
+  }
+  const destArr=type==='income'?(ST.tplIncome[destId]||[]):(ST.tplMonthly[destId]||[]);
+  const existingNames=new Set(destArr.map(t=>t.name));
+  let h=`<div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:8px;background:var(--bg)">`;
+  h+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">`;
+  h+=`<span style="font-size:11px;font-weight:600;color:var(--text2)">選擇要複製的科目</span>`;
+  h+=`<div style="display:flex;gap:12px;align-items:center">`;
+  h+=`<label style="font-size:11px;cursor:pointer;color:var(--text2)"><input type="checkbox" id="copy-${type}-with-amt" style="width:auto;margin-right:4px">含金額</label>`;
+  h+=`<label style="font-size:11px;cursor:pointer;color:var(--text2)"><input type="checkbox" id="copy-${type}-all" onchange="toggleCopyAll('${type}',this.checked)" style="width:auto;margin-right:4px">全選</label>`;
+  h+=`</div></div>`;
+  h+=`<div style="display:flex;flex-direction:column;gap:6px">`;
+  srcItems.forEach(t=>{
+    const exists=existingNames.has(t.name);
+    h+=`<label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:${exists?'default':'pointer'};color:${exists?'var(--text3)':'var(--text)'}">`;
+    h+=`<input type="checkbox" class="copy-${type}-item" value="${escH(t.id)}" data-amt="${t.amount}" ${exists?'disabled title="已存在"':''} style="width:auto">`;
+    h+=`<span style="flex:1">${escH(t.name)}</span>`;
+    h+=`<span style="color:var(--text3);font-size:11px;font-family:var(--mono)">${t.amount>0?t.amount.toLocaleString('zh-TW'):''}</span>`;
+    h+=`${exists?'<span style="color:var(--text3);font-size:11px">（已存在）</span>':''}</label>`;
+  });
+  h+=`</div>`;
+  h+=`<div style="display:flex;gap:8px;margin-top:10px">`;
+  h+=`<button class="btn sm pri" onclick="confirmCopyTpl('${type}','${srcId}')">複製選取科目</button>`;
+  h+=`<button class="btn sm" onclick="closeCopyPicker('${type}')">取消</button>`;
+  h+=`</div></div>`;
+  picker.innerHTML=h;
+  picker.style.display='block';
+}
+
+function toggleCopyAll(type,checked){
+  document.querySelectorAll('.copy-'+type+'-item:not(:disabled)').forEach(cb=>cb.checked=checked);
+}
+
+function closeCopyPicker(type){
+  const picker=document.getElementById('copy-'+type+'-picker');
+  if(picker)picker.style.display='none';
+  const sel=document.getElementById('copy-'+type+'-src');
+  if(sel)sel.value='';
+}
+
+function confirmCopyTpl(type,srcId){
+  const destId=type==='income'?tplCo.income:type==='expense'?tplCo.expense:tplCo.periodic;
+  const destArr=type==='income'?(ST.tplIncome[destId]||(ST.tplIncome[destId]=[])):type==='expense'?(ST.tplMonthly[destId]||(ST.tplMonthly[destId]=[])):( ST.tplPeriodic[destId]||(ST.tplPeriodic[destId]=[]));
+  const srcItems=type==='income'?(ST.tplIncome[srcId]||[]):type==='expense'?(ST.tplMonthly[srcId]||[]):(ST.tplPeriodic[srcId]||[]);
+  const checked=[...document.querySelectorAll('.copy-'+type+'-item:checked')].map(cb=>cb.value);
+  if(!checked.length){alert('請至少勾選一個科目');return;}
+  const withAmt=document.getElementById('copy-'+type+'-with-amt')?.checked||false;
+  let added=0;
+  checked.forEach(id=>{
+    const t=srcItems.find(t=>t.id===id);
+    if(t){
+      const item={id:uid(),name:t.name,amount:withAmt?t.amount:0,note:t.note||''};
+      if(type==='periodic')item.freq=t.freq||'annual';
+      destArr.push(item);
+      added++;
+    }
+  });
+  renderTplCo(type,destId);
+  scheduleSave();
+  closeCopyPicker(type);
+  alert('已複製 '+added+' 個科目'+(withAmt?'（含金額）':'（金額請自行填寫）'));
+}
+
+// income tpl CRUD
+function addTplI(coId){if(!ST.tplIncome[coId])ST.tplIncome[coId]=[];ST.tplIncome[coId].push({id:uid(),name:'',amount:0,note:''});renderTplCo('income',coId);scheduleSave();}
+function delTplI(coId,id){ST.tplIncome[coId]=(ST.tplIncome[coId]||[]).filter(t=>t.id!==id);renderTplCo('income',coId);scheduleSave();}
+function updTplI(coId,id,field,val){const t=(ST.tplIncome[coId]||[]).find(t=>t.id===id);if(!t)return;t[field]=field==='amount'?parseFloat(val)||0:val;scheduleSave();}
+function moveTplI(coId,id,dir){const arr=ST.tplIncome[coId]||[];const i=arr.findIndex(t=>t.id===id);const j=i+dir;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];renderTplCo('income',coId);scheduleSave();}
+// expense tpl CRUD
+function addTplM(coId){if(!ST.tplMonthly[coId])ST.tplMonthly[coId]=[];ST.tplMonthly[coId].push({id:uid(),name:'',amount:0,note:''});renderTplCo('expense',coId);scheduleSave();}
+function delTplM(coId,id){ST.tplMonthly[coId]=(ST.tplMonthly[coId]||[]).filter(t=>t.id!==id);renderTplCo('expense',coId);scheduleSave();}
+function updTplM(coId,id,field,val){const t=(ST.tplMonthly[coId]||[]).find(t=>t.id===id);if(!t)return;t[field]=field==='amount'?parseFloat(val)||0:val;scheduleSave();}
+function moveTplM(coId,id,dir){const arr=ST.tplMonthly[coId]||[];const i=arr.findIndex(t=>t.id===id);const j=i+dir;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];renderTplCo('expense',coId);scheduleSave();}
+function addTplPeriodic(coId){if(!coId)coId=tplCo.periodic;if(!ST.tplPeriodic[coId])ST.tplPeriodic[coId]=[];const freq=document.getElementById('tpl-periodic-freq-sel')?.value||'annual';ST.tplPeriodic[coId].push({id:uid(),name:'',amount:0,freq,note:''});renderTplCo('periodic',coId);scheduleSave();}
+function delTplP(coId,id){ST.tplPeriodic[coId]=(ST.tplPeriodic[coId]||[]).filter(t=>t.id!==id);renderTplCo('periodic',coId);scheduleSave();}
+function updTplP(coId,id,field,val){const t=(ST.tplPeriodic[coId]||[]).find(t=>t.id===id);if(!t)return;t[field]=field==='amount'?parseFloat(val)||0:val;scheduleSave();}
+function moveTplP(coId,id,dir){const arr=ST.tplPeriodic[coId]||[];const i=arr.findIndex(t=>t.id===id);const j=i+dir;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];renderTplCo('periodic',coId);scheduleSave();}
+
+// ═══════════════════════════════════
+// SEASON MANAGER
+// ═══════════════════════════════════
+function renderSeasonManager(){
+  const list=document.getElementById('season-list');
+  if(!ST.seasons.length){list.innerHTML=`<div style="padding:14px;font-size:12px;color:var(--text3);text-align:center">尚未建立任何期別</div>`;return;}
+  list.innerHTML=ST.seasons.map(s=>{
+    const mths=getMths(s.key);
+    const hasData=mths.some(m=>ST.monthData[m.ym]&&Object.keys(ST.monthData[m.ym]).length>0);
+    return`<div class="season-list-row">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="ssb-dot" style="background:${seasonColor(s.s)};width:10px;height:10px;border-radius:50%"></div>
+          <span style="font-size:13px;font-weight:700">${seasonLabel(s.key)}</span>
+          ${s.key===ST.activeSeason?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:1px 6px;border-radius:3px;font-weight:500">目前檢視</span>`:''}
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px;padding-left:18px">${seasonRange(s.s,s.year)}${hasData?' · 已有資料':' · 尚無資料'}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text2)">${mths.map(m=>m.m+'月').join(' / ')}</div>
+      <button class="btn sm ghost" onclick="switchForecastSeason('${s.key}');goto('forecast',null)">查看預測</button>
+      <button class="btn sm danger-ghost" onclick="deleteSeason('${s.key}')" ${ST.seasons.length<=1?'disabled':''}>刪除</button>
+    </div>`;
+  }).join('');
+}
+function openAddSeasonModal(){
+  const el=document.getElementById('modal-overlay');el.style.display='flex';
+  document.getElementById('modal-err').style.display='none';
+  updModalPreview();
+  document.getElementById('modal-s').onchange=updModalPreview;
+  document.getElementById('modal-y').oninput=updModalPreview;
+}
+function updModalPreview(){
+  const s=document.getElementById('modal-s').value;
+  const y=parseInt(document.getElementById('modal-y').value)||2027;
+  const key=`${s}-${y}`;
+  const exists=!!ST.seasons.find(ss=>ss.key===key);
+  const mths=SEAS_DEF[s].months.map(m=>{let yr=y;if(s==='S3'&&m<=2)yr=y+1;return`${yr}-${String(m).padStart(2,'0')}`;});
+  document.getElementById('modal-preview').textContent=`預測範圍：${mths[0]} ～ ${mths[3]}`;
+  const err=document.getElementById('modal-err');
+  err.style.display=exists?'block':'none';
+  err.textContent=exists?`${key} 已存在`:'';
+}
+function confirmAddSeason(){
+  const s=document.getElementById('modal-s').value;
+  const y=parseInt(document.getElementById('modal-y').value)||2027;
+  const key=`${s}-${y}`;
+  if(ST.seasons.find(ss=>ss.key===key)){document.getElementById('modal-err').style.display='block';return;}
+  // inherit opening from same season type if exists, else default
+  const ref=ST.seasons.find(ss=>ss.s===s)||ST.seasons[ST.seasons.length-1];
+  const opening=ref?JSON.parse(JSON.stringify(ref.opening)):{HQ:0,A01:0,A02:0,BC:0};
+  ST.seasons.push({key,s,year:y,opening});
+  ST.activeSeason=key;
+  closeModal();scheduleSave();
+  renderSeasonManager();renderSettings();
+}
+function deleteSeason(key){
+  if(ST.seasons.length<=1){alert('至少保留一個期別');return;}
+  if(!confirm(`確定刪除「${seasonLabel(key)}」？\n⚠ 該期別的所有月份資料也會一併刪除。`))return;
+  // remove monthData
+  getMths(key).forEach(m=>{delete ST.monthData[m.ym];});
+  ST.transfers=ST.transfers.filter(t=>!getMths(key).map(m=>m.ym).includes(t.ym));
+  ST.seasons=ST.seasons.filter(s=>s.key!==key);
+  if(ST.activeSeason===key)ST.activeSeason=ST.seasons[0].key;
+  scheduleSave();renderSeasonManager();renderSettings();renderForecast();
+}
+function closeModal(){document.getElementById('modal-overlay').style.display='none';}
+
+// ═══════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════
+function renderSettings(){
+  let h='';
+  ST.seasons.forEach(s=>{
+    h+=`<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:${seasonColor(s.s)};margin-bottom:8px;padding:5px 0;border-bottom:.5px solid var(--border)">
+        <span class="ssb-dot" style="background:${seasonColor(s.s)};width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle"></span>${seasonLabel(s.key)}
+      </div>`;
+    COS.forEach(co=>{
+      h+=`<div class="fgrp"><div class="flbl"><span class="cdot ${co.dc}"></span>${co.short}</div>
+        <input type="number" id="open-${s.key}-${co.id}" value="${s.opening[co.id]||0}" step="1000" oninput="updOpening('${s.key}','${co.id}',this.value)">
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  document.getElementById('open-fields').innerHTML=h||'<div style="font-size:12px;color:var(--text3)">尚未建立任何期別</div>';
+}
+function updOpening(sKey,coId,val){
+  const s=getSeasonObj(sKey);if(!s)return;
+  s.opening[coId]=parseFloat(val)||0;scheduleSave();
+}
+function saveSettings(){
+  const lib=document.getElementById('sp-library')?.value.trim();
+  const folder=document.getElementById('sp-folder')?.value.trim();
+  if(lib)localStorage.setItem('sp_library',lib);
+  if(folder)localStorage.setItem('sp_folder',folder);
+  // Clear cached drive ID so it re-fetches with new library
+  sessionStorage.clear();
+  scheduleSave();
+  goto('forecast',null);
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function goto(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  if(btn)btn.classList.add('active');
+  else{const b=document.querySelector(`.nav-btn[onclick="goto('${name}',this)"]`);if(b)b.classList.add('active');}
+  if(name==='forecast')renderForecast();
+  else if(name==='monthly')renderMonthlyPage();
+  else if(name==='transfer')renderTransfers();
+  else if(name==='templates')renderTemplates();
+  else if(name==='seasons'){renderSeasonManager();}
+  else if(name==='settings'){
+    renderSettings();
+    // Populate SP fields
+    const spLib=document.getElementById('sp-library');
+    const spFolder=document.getElementById('sp-folder');
+    const spPreview=document.getElementById('sp-path-preview');
+    if(spLib)spLib.value=localStorage.getItem('sp_library')||SP_LIBRARY_DEFAULT;
+    if(spFolder)spFolder.value=localStorage.getItem('sp_folder')||SP_FOLDER_DEFAULT;
+    if(spPreview){
+      const lib=localStorage.getItem('sp_library')||SP_LIBRARY_DEFAULT;
+      const folder=localStorage.getItem('sp_folder')||SP_FOLDER_DEFAULT;
+      spPreview.textContent='文件庫: '+lib+' | 路徑: '+folder+'/cashflow_data.json';
+    }
+  }
+}
+function setCoView(co,btn){ST.coView=co;document.querySelectorAll('.cotab').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderForecast();}
+
+// ═══════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════
+function exportCSV(){
+  const sKey=ST.activeSeason;const{mths,mks,res}=compute(sKey);const co=ST.coView;const d=res[co];
+  const rows=[['項目',...mths.map(m=>m.ym)].join(',')];
+  const ar=(lbl,vals)=>rows.push([`"${lbl}"`,...vals.map(v=>Math.round(v))].join(','));
+  if(co==='ALL')COS.forEach(c=>{ar(`[${c.short}]收入`,res[c.id].tI);ar(`[${c.short}]支出`,res[c.id].tE);});
+  ar('收入合計',d.tI);ar('支出合計',d.tE);ar('月淨現金流',d.net);ar('期末餘額',d.bal);
+  if(co==='ALL')COS.forEach(c=>ar(`[${c.short}]期末餘額`,res[c.id].bal));
+  const blob=new Blob(['\uFEFF'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`cashflow_${co}_${sKey}.csv`;a.click();
+}
+
+// ═══════════════════════════════════
+// MONTHLY EXCEL EXPORT
+// ═══════════════════════════════════
+function exportMonthlyExcel(){
+  const XLSX=window.XLSX;
+  if(!XLSX){alert('Excel 功能載入中，請稍後再試');return;}
+  const wb=XLSX.utils.book_new();
+  const CO_NAMES={HQ:'拉拉手教育HQ',A01:'拉拉手西屯A01',A02:'拉拉手北屯A02',BC:'波淘BC'};
+  // Collect all months across all seasons, sorted
+  const allMonths=[];
+  ST.seasons.forEach(s=>getMths(s.key).forEach(m=>{if(!allMonths.find(x=>x.ym===m.ym))allMonths.push(m);}));
+  allMonths.sort((a,b)=>a.ym.localeCompare(b.ym));
+  if(!allMonths.length){alert('尚未建立任何期別');return;}
+  COS.forEach(co=>{
+    const rows=[];
+    // Header row
+    rows.push(['月份','類別','科目名稱','金額 (NT$)','備註']);
+    allMonths.forEach(m=>{
+      const ym=m.ym;
+      const coData=ST.monthData[ym]?.[co.id];
+      if(!coData){
+        // Month not yet opened — show blank
+        rows.push([ym,'收入','—','','']);
+        rows.push([ym,'支出','—','','']);
+        return;
+      }
+      const income=coData.income||[];
+      const expense=coData.expense||[];
+      if(!income.length&&!expense.length){
+        rows.push([ym,'（空白）','','','']);
+      }
+      income.forEach(item=>rows.push([ym,'收入',item.name,item.amount,item.note||'']));
+      expense.forEach(item=>rows.push([ym,'支出',item.name,item.amount,item.note||'']));
+    });
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:10},{wch:8},{wch:28},{wch:14},{wch:28}];
+    XLSX.utils.book_append_sheet(wb,ws,co.short+'_'+CO_NAMES[co.id].slice(-2));
+  });
+  const season=getSeasonObj(ST.activeSeason);
+  const fname='逐月收支_'+(season?season.key:'all')+'.xlsx';
+  XLSX.writeFile(wb,fname);
+}
+
+// EXCEL IMPORT / EXPORT
+// ═══════════════════════════════════
+function downloadTplExcel(){
+  // Build workbook with one sheet per company per type + periodic
+  const XLSX=window.XLSX;
+  if(!XLSX){alert('Excel 功能載入中，請稍後再試');return;}
+  const wb=XLSX.utils.book_new();
+  const CO_NAMES={HQ:'拉拉手教育HQ',A01:'拉拉手西屯A01',A02:'拉拉手北屯A02',BC:'波淘BC'};
+  const FREQ_NAMES={annual:'每年',semiannual:'每半年',seasonal:'每學期(4個月)',quarterly:'每3個月',bimonthly:'每2個月'};
+  // income sheets
+  COS.forEach(co=>{
+    const rows=[['科目名稱','預設金額','備註']];
+    (ST.tplIncome[co.id]||[]).forEach(t=>rows.push([t.name,t.amount,t.note||'']));
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:28},{wch:14},{wch:24}];
+    // style header row note for user
+    XLSX.utils.book_append_sheet(wb,ws,'收入_'+co.short);
+  });
+  // expense monthly sheets
+  COS.forEach(co=>{
+    const rows=[['科目名稱','預設金額','備註']];
+    (ST.tplMonthly[co.id]||[]).forEach(t=>rows.push([t.name,t.amount,t.note||'']));
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:28},{wch:14},{wch:24}];
+    XLSX.utils.book_append_sheet(wb,ws,'支出固定_'+co.short);
+  });
+  // periodic sheets per company
+  COS.forEach(co=>{
+    const prows=[['科目名稱','預設金額','頻率','備註']];
+    (ST.tplPeriodic[co.id]||[]).forEach(t=>prows.push([t.name,t.amount,FREQ_NAMES[t.freq]||t.freq,t.note||'']));
+    const pws=XLSX.utils.aoa_to_sheet(prows);
+    pws['!cols']=[{wch:28},{wch:14},{wch:16},{wch:24}];
+    XLSX.utils.book_append_sheet(wb,pws,'支出週期性_'+co.short);
+  });
+  XLSX.writeFile(wb,'收支範本庫.xlsx');
+}
+
+function uploadTplExcel(input){
+  const XLSX=window.XLSX;
+  if(!XLSX){alert('Excel 功能載入中，請稍後再試');return;}
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const FREQ_MAP={'每年':'annual','每半年':'semiannual','每學期(4個月)':'seasonal','每3個月':'quarterly','每2個月':'bimonthly'};
+      let imported=0;
+      wb.SheetNames.forEach(sheetName=>{
+        const ws=wb.Sheets[sheetName];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        if(rows.length<2)return;
+        // skip header row, parse data rows
+        const dataRows=rows.slice(1).filter(r=>String(r[0]||'').trim());
+        if(sheetName.startsWith('收入_')){
+          const coShort=sheetName.replace('收入_','');
+          const co=COS.find(c=>c.short===coShort);if(!co)return;
+          ST.tplIncome[co.id]=dataRows.map(r=>({
+            id:uid(),
+            name:String(r[0]||'').trim(),
+            amount:parseFloat(r[1])||0,
+            note:String(r[2]||'').trim()
+          }));
+          imported++;
+        } else if(sheetName.startsWith('支出固定_')){
+          const coShort=sheetName.replace('支出固定_','');
+          const co=COS.find(c=>c.short===coShort);if(!co)return;
+          ST.tplMonthly[co.id]=dataRows.map(r=>({
+            id:uid(),
+            name:String(r[0]||'').trim(),
+            amount:parseFloat(r[1])||0,
+            note:String(r[2]||'').trim()
+          }));
+          imported++;
+        } else if(sheetName.startsWith('支出週期性_')){
+          const coShort=sheetName.replace('支出週期性_','');
+          const co=COS.find(c=>c.short===coShort);if(!co)return;
+          ST.tplPeriodic[co.id]=dataRows.map(r=>({
+            id:uid(),
+            name:String(r[0]||'').trim(),
+            amount:parseFloat(r[1])||0,
+            freq:FREQ_MAP[String(r[2]||'').trim()]||'annual',
+            note:String(r[3]||'').trim()
+          })).filter(t=>t.name);
+          imported++;
+        }
+      });
+      scheduleSave();
+      renderTemplates();
+      // reset co tabs to HQ
+      tplCo={income:'HQ',expense:'HQ',periodic:'HQ'};
+      ['income','expense'].forEach(type=>{
+        const tabs=document.getElementById('tpl-'+type+'-co-tabs');
+        if(tabs){tabs.querySelectorAll('.tpl-co-tab').forEach((b,i)=>b.classList.toggle('active',i===0));}
+      });
+      alert('匯入完成！共更新 '+imported+' 個工作表的範本資料。');
+    }catch(err){
+      alert('匯入失敗：'+err.message+'\n請確認檔案格式正確。');
+    }
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ═══════════════════════════════════
+// IMPORT BACKUP
+// ═══════════════════════════════════
+function importBackup(input){
+  if(!currentAccount){alert('請先登入 Microsoft 帳號');input.value='';return;}
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      const keys=['seasons','activeSeason','monthData','transfers','coView','editorCo','tplIncome','tplMonthly','tplPeriodic'];
+      const valid=keys.some(k=>d[k]!==undefined);
+      if(!valid){alert('檔案格式不正確，請選擇正確的備份 JSON');return;}
+      keys.forEach(k=>{if(d[k]!==undefined)ST[k]=d[k];});
+      COS.forEach(c=>{
+        if(!ST.tplIncome[c.id])ST.tplIncome[c.id]=[];
+        if(!ST.tplMonthly[c.id])ST.tplMonthly[c.id]=[];
+        if(!ST.tplPeriodic[c.id])ST.tplPeriodic[c.id]=[];
+      });
+      // migrate old array format to object - distribute to all companies
+      if(Array.isArray(ST.tplPeriodic)){
+        const old=ST.tplPeriodic;
+        ST.tplPeriodic={};
+        COS.forEach(c=>{ST.tplPeriodic[c.id]=old.map(t=>({...t,id:uid()}));});
+      }
+      setSave('匯入成功，儲存中...','saving');
+      await saveNow();
+      renderForecast();
+      renderSettings();
+      alert('✅ 匯入成功！資料已儲存至 SharePoint。');
+    }catch(err){
+      alert('匯入失敗：'+err.message);
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+
+// ═══════════════════════════════════
+// PUSH TEMPLATE TO MONTHLY
+// ═══════════════════════════════════
+let pushCtx={type:null,coId:null,itemId:null};
+
+function getAllMonths(){
+  const months=[];
+  ST.seasons.forEach(s=>{getMths(s.key).forEach(m=>months.push({...m,seasonKey:s.key}));});
+  return months;
+}
+
+function openPushIncomeModal(){
+  const coId=tplCo.income;
+  const items=(ST.tplIncome[coId]||[]).filter(t=>t.name.trim());
+  if(!items.length){alert('尚無收入範本科目');return;}
+  pushCtx={type:'income',coId,itemId:null};
+  const co=COS.find(c=>c.id===coId);
+  document.getElementById('push-modal-title').textContent='帶入逐月收支 — '+co.short;
+  document.getElementById('push-modal-desc').textContent='將「'+co.short+'」的全部 '+items.length+' 個收入科目帶入選定月份（已有同名科目不重複新增）';
+  renderPushMonthList(false);
+  document.getElementById('push-modal-overlay').style.display='flex';
+}
+
+function openPushMonthlyModal(){
+  const coId=tplCo.expense;
+  const items=ST.tplMonthly[coId]||[];
+  if(!items.length){alert('尚無每月固定支出科目');return;}
+  pushCtx={type:'monthly',coId,itemId:null};
+  const co=COS.find(c=>c.id===coId);
+  document.getElementById('push-modal-title').textContent='帶入逐月收支 — '+co.short;
+  document.getElementById('push-modal-desc').textContent='將「'+co.short+'」的全部 '+items.length+' 個每月固定科目帶入選定月份（已有同名科目不重複新增）';
+  renderPushMonthList(false);
+  document.getElementById('push-modal-overlay').style.display='flex';
+}
+
+function openPushPeriodicModal(coId,itemId){
+  const items=ST.tplPeriodic[coId]||[];
+  const t=items.find(i=>i.id===itemId);
+  if(!t)return;
+  pushCtx={type:'periodic',coId,itemId};
+  document.getElementById('push-modal-title').textContent='帶入逐月收支';
+  document.getElementById('push-modal-desc').textContent='將「'+t.name+'」（'+t.amount.toLocaleString('zh-TW')+' NT$）帶入選定月份';
+  renderPushMonthList(false);
+  document.getElementById('push-modal-overlay').style.display='flex';
+}
+
+function renderPushMonthList(multiSelect){
+  const months=getAllMonths();
+  if(!months.length){document.getElementById('push-month-list').innerHTML='<div style="color:var(--text3);font-size:12px">尚未建立任何期別</div>';return;}
+  const isMulti=pushCtx.type==='monthly'||pushCtx.type==='income';
+  let h='';
+  if(isMulti){
+    h+=`<label style="font-size:11px;color:var(--text2);cursor:pointer;margin-bottom:4px"><input type="checkbox" id="push-all-months" onchange="togglePushAll(this.checked)" style="width:auto;margin-right:6px">全選所有月份</label>`;
+  }
+  // Group by season
+  const bySeason={};
+  months.forEach(m=>{(bySeason[m.seasonKey]||(bySeason[m.seasonKey]=[])).push(m);});
+  Object.entries(bySeason).forEach(([key,mths])=>{
+    const s=getSeasonObj(key);
+    h+=`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:8px;margin-bottom:3px">${seasonLabel(key)}</div>`;
+    mths.forEach(m=>{
+      if(isMulti){
+        h+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 0"><input type="checkbox" class="push-month-cb" value="${m.ym}" style="width:auto">${m.m}月 <span style="color:var(--text3);font-size:11px">${m.ym}</span></label>`;
+      } else {
+        h+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 0"><input type="radio" name="push-month-r" value="${m.ym}" style="width:auto">${m.m}月 <span style="color:var(--text3);font-size:11px">${m.ym}</span></label>`;
+      }
+    });
+  });
+  document.getElementById('push-month-list').innerHTML=h;
+}
+
+function togglePushAll(checked){
+  document.querySelectorAll('.push-month-cb').forEach(cb=>cb.checked=checked);
+}
+
+function confirmPushToMonthly(){
+  const {type,coId,itemId}=pushCtx;
+  let targetYms=[];
+  if(type==='monthly'||type==='income'){
+    targetYms=[...document.querySelectorAll('.push-month-cb:checked')].map(cb=>cb.value);
+  } else {
+    const r=document.querySelector('input[name="push-month-r"]:checked');
+    if(r)targetYms=[r.value];
+  }
+  if(!targetYms.length){alert('請選擇至少一個月份');return;}
+  let pushed=0;
+  targetYms.forEach(ym=>{
+    const data=getMonthCo(ym,coId);
+    if(type==='income'){
+      const items=(ST.tplIncome[coId]||[]).filter(t=>t.name.trim());
+      const existing=new Set(data.income.map(e=>e.name));
+      items.filter(t=>!existing.has(t.name)).forEach(t=>{data.income.push({id:uid(),name:t.name,amount:t.amount,isRenew:false});pushed++;});
+    } else if(type==='monthly'){
+      const items=ST.tplMonthly[coId]||[];
+      const existing=new Set(data.expense.map(e=>e.name));
+      items.filter(t=>t.name.trim()&&!existing.has(t.name)).forEach(t=>{data.expense.push({id:uid(),name:t.name,amount:t.amount,note:t.note||''});pushed++;});
+    } else {
+      const items=ST.tplPeriodic[coId]||[];
+      const t=items.find(i=>i.id===itemId);
+      if(t){
+        const exists=data.expense.find(e=>e.name===t.name);
+        if(!exists){data.expense.push({id:uid(),name:t.name,amount:t.amount,note:t.note||''});pushed++;}
+      }
+    }
+  });
+  scheduleSave();
+  closePushModal();
+  const msg=pushed>0?`已帶入 ${pushed} 筆至 ${targetYms.length} 個月份`:'所選月份已有相同科目，未重複新增';
+  alert(msg);
+}
+
+function closePushModal(){
+  document.getElementById('push-modal-overlay').style.display='none';
+  pushCtx={type:null,coId:null,itemId:null};
+}
+
+// ═══════════════════════════════════
+// INIT (called after MSAL CDN loads)
+// ═══════════════════════════════════
+function initMsal(){
+  msalInstance=new msal.PublicClientApplication(msalConfig);
+  msalInstance.initialize().then(()=>{
+    const accounts=msalInstance.getAllAccounts();
+    if(accounts.length>0){
+      currentAccount=accounts[0];
+      hideLoginOverlay();
+      updateAuthUI();
+      loadData();
+    }else{
+      showLoginOverlay();
+    }
+  }).catch(e=>{
+    console.error('MSAL init error',e);
+    document.getElementById('overlay-status').textContent='認證服務錯誤：'+e.message;
+  });
+}
+
+// Fix getToken/login to guard against null msalInstance
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" onload="initMsal()" onerror="document.getElementById('overlay-status').textContent='認證服務載入失敗，請重新整理'"></script>
+
+<!-- Push to Monthly Modal -->
+<div id="push-modal-overlay" class="overlay" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr"><div class="modal-title" id="push-modal-title">帶入逐月收支</div><button class="btn-close" onclick="closePushModal()">✕</button></div>
+    <div style="padding:16px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="push-modal-desc"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">選擇要帶入的月份：</div>
+      <div id="push-month-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn pri" onclick="confirmPushToMonthly()">確認帶入</button>
+        <button class="btn" onclick="closePushModal()">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
