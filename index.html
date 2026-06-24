@@ -1719,35 +1719,53 @@ function exportMonthlyExcel(){
 }
 
 function downloadTplExcel(){
-  // Build workbook with one sheet per company per type + periodic
   const XLSX=window.XLSX;
   if(!XLSX){alert('Excel 功能載入中，請稍後再試');return;}
   const wb=XLSX.utils.book_new();
-  const CO_NAMES={HQ:'拉拉手教育HQ',A01:'拉拉手西屯A01',A02:'拉拉手北屯A02',BC:'波淘BC'};
   const FREQ_NAMES={annual:'每年',semiannual:'每半年',seasonal:'每學期(4個月)',quarterly:'每3個月',bimonthly:'每2個月'};
+  function acctLabel(coId,code){
+    if(!code)return'';
+    const c=getAcctCodes(coId).find(x=>x.code===code);
+    return c?`[${c.code}] ${c.name}`:code;
+  }
   // income sheets
   COS.forEach(co=>{
     const rows=[['科目名稱','預設金額','備註']];
     (ST.tplIncome[co.id]||[]).forEach(t=>rows.push([t.name,t.amount,t.note||'']));
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[{wch:28},{wch:14},{wch:24}];
-    // style header row note for user
+    ws['!cols']=[{wch:28},{wch:14},{wch:28}];
     XLSX.utils.book_append_sheet(wb,ws,'收入_'+co.short);
   });
   // expense monthly sheets
   COS.forEach(co=>{
-    const rows=[['科目名稱','預設金額','備註']];
-    (ST.tplMonthly[co.id]||[]).forEach(t=>rows.push([t.name,t.amount,t.note||'']));
+    const hasAcct=getAcctCodes(co.id).length>0;
+    const hdr=hasAcct?['支出項目','預設金額','備註','會計科目代碼','會計科目名稱']:['支出項目','預設金額','備註'];
+    const rows=[hdr];
+    (ST.tplMonthly[co.id]||[]).forEach(t=>{
+      const code=t.acctCode||'';
+      const ac=getAcctCodes(co.id).find(x=>x.code===code);
+      const row=[t.name,t.amount,t.note||''];
+      if(hasAcct){row.push(code);row.push(ac?ac.name:'');}
+      rows.push(row);
+    });
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[{wch:28},{wch:14},{wch:24}];
+    ws['!cols']=hasAcct?[{wch:28},{wch:14},{wch:24},{wch:10},{wch:24}]:[{wch:28},{wch:14},{wch:24}];
     XLSX.utils.book_append_sheet(wb,ws,'支出固定_'+co.short);
   });
   // periodic sheets per company
   COS.forEach(co=>{
-    const prows=[['科目名稱','預設金額','頻率','備註']];
-    (ST.tplPeriodic[co.id]||[]).forEach(t=>prows.push([t.name,t.amount,FREQ_NAMES[t.freq]||t.freq,t.note||'']));
-    const pws=XLSX.utils.aoa_to_sheet(prows);
-    pws['!cols']=[{wch:28},{wch:14},{wch:16},{wch:24}];
+    const hasAcct=getAcctCodes(co.id).length>0;
+    const hdr=hasAcct?['支出項目','預設金額','頻率','備註','會計科目代碼','會計科目名稱']:['支出項目','預設金額','頻率','備註'];
+    const rows=[hdr];
+    (ST.tplPeriodic[co.id]||[]).forEach(t=>{
+      const code=t.acctCode||'';
+      const ac=getAcctCodes(co.id).find(x=>x.code===code);
+      const row=[t.name,t.amount,FREQ_NAMES[t.freq]||t.freq,t.note||''];
+      if(hasAcct){row.push(code);row.push(ac?ac.name:'');}
+      rows.push(row);
+    });
+    const pws=XLSX.utils.aoa_to_sheet(rows);
+    pws['!cols']=hasAcct?[{wch:28},{wch:14},{wch:14},{wch:24},{wch:10},{wch:24}]:[{wch:28},{wch:14},{wch:14},{wch:24}];
     XLSX.utils.book_append_sheet(wb,pws,'支出週期性_'+co.short);
   });
   XLSX.writeFile(wb,'收支範本庫.xlsx');
