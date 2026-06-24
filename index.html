@@ -549,22 +549,33 @@ const ACCT_CODES={
     {code:'6501',name:'利息支出',type:'費用'},{code:'6502',name:'投資損失',type:'費用'},{code:'6503',name:'所得稅費',type:'費用'},
   ],
   A01:[
+    {code:'4401',name:'利息收入',type:'收入'},{code:'4402',name:'投資收益',type:'收入'},{code:'4403',name:'處分利益',type:'收入'},
     {code:'5101',name:'場館租金',type:'銷售成本'},{code:'5102',name:'場館稅捐',type:'銷售成本'},
     {code:'5103',name:'場館保險費',type:'銷售成本'},{code:'5104',name:'場館更新修繕工程',type:'銷售成本'},
     {code:'5105',name:'泳池設備器材成本',type:'銷售成本'},{code:'5106',name:'泳池設備器材維修',type:'銷售成本'},
+    {code:'5107',name:'裝潢工程-折舊費用',type:'銷售成本'},{code:'5108',name:'泳池設備-折舊費用',type:'銷售成本'},
     {code:'5201',name:'水質檢測費',type:'銷售成本'},{code:'5202',name:'水質維護費',type:'銷售成本'},
     {code:'5203',name:'電費-基本費',type:'銷售成本'},{code:'5204',name:'電費-流動費',type:'銷售成本'},
     {code:'5205',name:'水費-基本費',type:'銷售成本'},{code:'5206',name:'水費-流動費',type:'銷售成本'},
     {code:'5301',name:'學員用品成本',type:'銷售成本'},{code:'5302',name:'教學用具成本',type:'銷售成本'},
-    {code:'5405',name:'救生員薪資',type:'銷售成本'},{code:'5502',name:'工作服裝及用品成本',type:'銷售成本'},
+    {code:'5303',name:'教學器材-折舊費用',type:'銷售成本'},
+    {code:'5401',name:'教學老師月薪及津貼',type:'銷售成本'},{code:'5402',name:'教學老師績效獎金',type:'銷售成本'},
+    {code:'5403',name:'教學老師制度獎金',type:'銷售成本'},{code:'5404',name:'教學老師勞健保及退休金',type:'銷售成本'},
+    {code:'5405',name:'救生員薪資',type:'銷售成本'},{code:'5501',name:'總部服務費-教務管理',type:'銷售成本'},
+    {code:'5502',name:'工作服裝及用品成本',type:'銷售成本'},
     {code:'6101',name:'非教學老師月薪及津貼',type:'費用'},{code:'6102',name:'非教學老師績效獎金',type:'費用'},
     {code:'6103',name:'非教學老師制度獎金',type:'費用'},{code:'6104',name:'非教學老師勞健保及退休金',type:'費用'},
     {code:'6105',name:'通識教育訓練費',type:'費用'},{code:'6106',name:'員工團體保險費',type:'費用'},
     {code:'6107',name:'員工福利費用',type:'費用'},{code:'6201',name:'門市行銷費用',type:'費用'},
-    {code:'6202',name:'學員禮品費用',type:'費用'},{code:'6302',name:'營業軟體訂閱費',type:'費用'},
-    {code:'6303',name:'網路電信月租費',type:'費用'},{code:'6401',name:'辦公設備及用品費',type:'費用'},
+    {code:'6202',name:'學員禮品費用',type:'費用'},{code:'6203',name:'總部服務費-行銷推廣',type:'費用'},
+    {code:'6204',name:'其他行銷費用',type:'費用'},{code:'6301',name:'工作人員差旅費',type:'費用'},
+    {code:'6302',name:'營業軟體訂閱費',type:'費用'},{code:'6303',name:'網路電信月租費',type:'費用'},
+    {code:'6304',name:'線上金流手續費',type:'費用'},{code:'6305',name:'總部服務費-行政管理',type:'費用'},
+    {code:'6306',name:'其他管理費用',type:'費用'},{code:'6401',name:'辦公設備及用品費',type:'費用'},
     {code:'6402',name:'服務設備及用品費',type:'費用'},{code:'6403',name:'衛生用品及雜支費',type:'費用'},
     {code:'6404',name:'清潔及垃圾清運費',type:'費用'},{code:'6405',name:'日常維護及修繕費',type:'費用'},
+    {code:'6406',name:'辦公設備-折舊費用',type:'費用'},{code:'6407',name:'其他總務費用',type:'費用'},
+    {code:'6501',name:'利息支出',type:'費用'},{code:'6502',name:'投資損失',type:'費用'},{code:'6503',name:'所得稅費',type:'費用'},
   ],
 };
 function getAcctCodes(coId){return ACCT_CODES[coId==='A02'?'A01':coId]||[];}
@@ -1953,35 +1964,4 @@ function closePushModal(){
 
 // ═══════════════════════════════════
 // INIT (called after MSAL CDN loads)
-// ═══════════════════════════════════
-function initMsal(){
-  msalInstance=new msal.PublicClientApplication(msalConfig);
-  msalInstance.initialize().then(()=>{
-    const accounts=msalInstance.getAllAccounts();
-    if(accounts.length>0){
-      currentAccount=accounts[0];
-      hideLoginOverlay();
-      updateAuthUI();
-      loadData();
-    }else{
-      showLoginOverlay();
-    }
-  }).catch(e=>{
-    console.error('MSAL init error',e);
-    document.getElementById('overlay-status').textContent='認證服務錯誤：'+e.message;
-  });
-}
-
-// Fix getToken/login to guard against null msalInstance
-
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" onload="initMsal()" onerror="document.getElementById('overlay-status').textContent='認證服務載入失敗，請重新整理'"></script>
-
-<!-- Push to Monthly Modal -->
-<div id="push-modal-overlay" class="overlay" style="display:none">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-hdr"><div class="modal-title" id="push-modal-title">帶入逐月收支</div><button class="btn-close" onclick="closePushModal()">✕</button></div>
-    <div style="padding:16px">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="push-modal-desc"></div>
-      <div style="font-size
+// ═════════════════════════════════
