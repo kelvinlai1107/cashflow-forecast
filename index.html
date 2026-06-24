@@ -1230,7 +1230,7 @@ function renderTplCo(type,coId){
       h='<div style="padding:14px;font-size:12px;color:var(--text3);text-align:center">尚未設定支出範本</div>';
     } else {
       const hasTplAcct=getAcctCodes(coId).length>0;
-      h+=`<div class="tpl-row ${hasTplAcct?'with-note-acct':'with-note'} hdr"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>備註</span>${hasTplAcct?'<span>會計科目</span>':''}<span></span></div>`;
+      h+=`<div class="tpl-row ${hasTplAcct?'with-note-acct':'with-note'} hdr"><span></span><span>支出項目</span><span>預設金額(NT$)</span><span>備註</span>${hasTplAcct?'<span>會計科目</span>':''}<span></span></div>`;
       items.forEach((t,idx)=>{
         const acctSel=hasTplAcct?`<select onchange="updTplM('${coId}','${t.id}','acctCode',this.value)">${buildAcctOpts(coId,t.acctCode||'')}</select>`:'';
         h+=`<div class="tpl-row ${hasTplAcct?'with-note-acct':'with-note'}">`
@@ -1238,7 +1238,7 @@ function renderTplCo(type,coId){
           +`<button class="btn-sort" onclick="moveTplM('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
           +`<button class="btn-sort" onclick="moveTplM('${coId}','${t.id}',1)" ${idx===items.length-1?'disabled':''}>▼</button>`
           +`</div>`
-          +`<input type="text" value="${escH(t.name)}" placeholder="科目名稱" oninput="updTplM('${coId}','${t.id}','name',this.value)">`
+          +`<input type="text" value="${escH(t.name)}" placeholder="支出項目" oninput="updTplM('${coId}','${t.id}','name',this.value)">`
           +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplM('${coId}','${t.id}','amount',this.value)">`
           +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplM('${coId}','${t.id}','note',this.value)">`
           +acctSel
@@ -1269,7 +1269,7 @@ function renderTplCo(type,coId){
         h+=`<div style="margin-top:10px;margin-bottom:2px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;padding:4px 0;border-bottom:1px solid var(--border)">${freqLabel[freq]}</div>`;
         const hasPAcct=getAcctCodes(coId).length>0;
         const wideClass=`tpl-row wide${hasPAcct?' with-acct':''}`;
-        h+=`<div class="${wideClass} hdr" style="margin-top:4px"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>頻率</span><span>備註</span>${hasPAcct?'<span>會計科目</span>':''}<span></span></div>`;
+        h+=`<div class="${wideClass} hdr" style="margin-top:4px"><span></span><span>支出項目</span><span>預設金額(NT$)</span><span>頻率</span><span>備註</span>${hasPAcct?'<span>會計科目</span>':''}<span></span></div>`;
         grp.forEach((t,idx)=>{
           const pAcctSel=hasPAcct?`<select onchange="updTplP('${coId}','${t.id}','acctCode',this.value)">${buildAcctOpts(coId,t.acctCode||'')}</select>`:'';
           h+=`<div class="${wideClass}">`
@@ -1277,7 +1277,7 @@ function renderTplCo(type,coId){
             +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
             +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',1)" ${idx===grp.length-1?'disabled':''}>▼</button>`
             +`</div>`
-            +`<input type="text" value="${escH(t.name)}" placeholder="科目名稱" oninput="updTplP('${coId}','${t.id}','name',this.value)">`
+            +`<input type="text" value="${escH(t.name)}" placeholder="支出項目" oninput="updTplP('${coId}','${t.id}','name',this.value)">`
             +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplP('${coId}','${t.id}','amount',this.value)">`
             +`<select onchange="updTplP('${coId}','${t.id}','freq',this.value);renderTplCo('periodic','${coId}')">${PFREQS.map(f=>`<option value="${f.v}"${t.freq===f.v?' selected':''}>${f.l}</option>`).join('')}</select>`
             +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplP('${coId}','${t.id}','note',this.value)">`
