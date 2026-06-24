@@ -1964,4 +1964,45 @@ function closePushModal(){
 
 // ═══════════════════════════════════
 // INIT (called after MSAL CDN loads)
-// ═════════════════════════════════
+// ═══════════════════════════════════
+function initMsal(){
+  msalInstance=new msal.PublicClientApplication(msalConfig);
+  msalInstance.initialize().then(()=>{
+    const accounts=msalInstance.getAllAccounts();
+    if(accounts.length>0){
+      currentAccount=accounts[0];
+      hideLoginOverlay();
+      updateAuthUI();
+      loadData();
+    }else{
+      showLoginOverlay();
+    }
+  }).catch(e=>{
+    console.error('MSAL init error',e);
+    document.getElementById('overlay-status').textContent='認證服務錯誤：'+e.message;
+  });
+}
+
+// Fix getToken/login to guard against null msalInstance
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" onload="initMsal()" onerror="document.getElementById('overlay-status').textContent='認證服務載入失敗，請重新整理'"></script>
+
+<!-- Push to Monthly Modal -->
+<div id="push-modal-overlay" class="overlay" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr"><div class="modal-title" id="push-modal-title">帶入逐月收支</div><button class="btn-close" onclick="closePushModal()">✕</button></div>
+    <div style="padding:16px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="push-modal-desc"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">選擇要帶入的月份：</div>
+      <div id="push-month-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn pri" onclick="confirmPushToMonthly()">確認帶入</button>
+        <button class="btn" onclick="closePushModal()">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
