@@ -1689,8 +1689,6 @@ function exportMonthlyExcel(){
   XLSX.writeFile(wb,fname);
 }
 
-// EXCEL IMPORT / EXPORT
-// ═══════════════════════════════════
 function downloadTplExcel(){
   // Build workbook with one sheet per company per type + periodic
   const XLSX=window.XLSX;
@@ -1703,4 +1701,292 @@ function downloadTplExcel(){
     const rows=[['科目名稱','預設金額','備註']];
     (ST.tplIncome[co.id]||[]).forEach(t=>rows.push([t.name,t.amount,t.note||'']));
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[{wch:
+    ws['!cols']=[{wch:28},{wch:14},{wch:24}];
+    // style header row note for user
+    XLSX.utils.book_append_sheet(wb,ws,'收入_'+co.short);
+  });
+  // expense monthly sheets
+  COS.forEach(co=>{
+    const rows=[['科目名稱','預設金額','備註']];
+    (ST.tplMonthly[co.id]||[]).forEach(t=>rows.push([t.name,t.amount,t.note||'']));
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:28},{wch:14},{wch:24}];
+    XLSX.utils.book_append_sheet(wb,ws,'支出固定_'+co.short);
+  });
+  // periodic sheets per company
+  COS.forEach(co=>{
+    const prows=[['科目名稱','預設金額','頻率','備註']];
+    (ST.tplPeriodic[co.id]||[]).forEach(t=>prows.push([t.name,t.amount,FREQ_NAMES[t.freq]||t.freq,t.note||'']));
+    const pws=XLSX.utils.aoa_to_sheet(prows);
+    pws['!cols']=[{wch:28},{wch:14},{wch:16},{wch:24}];
+    XLSX.utils.book_append_sheet(wb,pws,'支出週期性_'+co.short);
+  });
+  XLSX.writeFile(wb,'收支範本庫.xlsx');
+}
+
+function uploadTplExcel(input){
+  const XLSX=window.XLSX;
+  if(!XLSX){alert('Excel 功能載入中，請稍後再試');return;}
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const FREQ_MAP={'每年':'annual','每半年':'semiannual','每學期(4個月)':'seasonal','每3個月':'quarterly','每2個月':'bimonthly'};
+      let imported=0;
+      wb.SheetNames.forEach(sheetName=>{
+        const ws=wb.Sheets[sheetName];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        if(rows.length<2)return;
+        // skip header row, parse data rows
+        const dataRows=rows.slice(1).filter(r=>String(r[0]||'').trim());
+        if(sheetName.startsWith('收入_')){
+          const coShort=sheetName.replace('收入_','');
+          const co=COS.find(c=>c.short===coShort);if(!co)return;
+          ST.tplIncome[co.id]=dataRows.map(r=>({
+            id:uid(),
+            name:String(r[0]||'').trim(),
+            amount:parseFloat(r[1])||0,
+            note:String(r[2]||'').trim()
+          }));
+          imported++;
+        } else if(sheetName.startsWith('支出固定_')){
+          const coShort=sheetName.replace('支出固定_','');
+          const co=COS.find(c=>c.short===coShort);if(!co)return;
+          ST.tplMonthly[co.id]=dataRows.map(r=>({
+            id:uid(),
+            name:String(r[0]||'').trim(),
+            amount:parseFloat(r[1])||0,
+            note:String(r[2]||'').trim()
+          }));
+          imported++;
+        } else if(sheetName.startsWith('支出週期性_')){
+          const coShort=sheetName.replace('支出週期性_','');
+          const co=COS.find(c=>c.short===coShort);if(!co)return;
+          ST.tplPeriodic[co.id]=dataRows.map(r=>({
+            id:uid(),
+            name:String(r[0]||'').trim(),
+            amount:parseFloat(r[1])||0,
+            freq:FREQ_MAP[String(r[2]||'').trim()]||'annual',
+            note:String(r[3]||'').trim()
+          })).filter(t=>t.name);
+          imported++;
+        }
+      });
+      scheduleSave();
+      renderTemplates();
+      // reset co tabs to HQ
+      tplCo={income:'HQ',expense:'HQ',periodic:'HQ'};
+      ['income','expense'].forEach(type=>{
+        const tabs=document.getElementById('tpl-'+type+'-co-tabs');
+        if(tabs){tabs.querySelectorAll('.tpl-co-tab').forEach((b,i)=>b.classList.toggle('active',i===0));}
+      });
+      alert('匯入完成！共更新 '+imported+' 個工作表的範本資料。');
+    }catch(err){
+      alert('匯入失敗：'+err.message+'\n請確認檔案格式正確。');
+    }
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ═══════════════════════════════════
+// IMPORT BACKUP
+// ═══════════════════════════════════
+function importBackup(input){
+  if(!currentAccount){alert('請先登入 Microsoft 帳號');input.value='';return;}
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      const keys=['seasons','activeSeason','monthData','transfers','coView','editorCo','tplIncome','tplMonthly','tplPeriodic'];
+      const valid=keys.some(k=>d[k]!==undefined);
+      if(!valid){alert('檔案格式不正確，請選擇正確的備份 JSON');return;}
+      keys.forEach(k=>{if(d[k]!==undefined)ST[k]=d[k];});
+      COS.forEach(c=>{
+        if(!ST.tplIncome[c.id])ST.tplIncome[c.id]=[];
+        if(!ST.tplMonthly[c.id])ST.tplMonthly[c.id]=[];
+        if(!ST.tplPeriodic[c.id])ST.tplPeriodic[c.id]=[];
+      });
+      // migrate old array format to object - distribute to all companies
+      if(Array.isArray(ST.tplPeriodic)){
+        const old=ST.tplPeriodic;
+        ST.tplPeriodic={};
+        COS.forEach(c=>{ST.tplPeriodic[c.id]=old.map(t=>({...t,id:uid()}));});
+      }
+      setSave('匯入成功，儲存中...','saving');
+      await saveNow();
+      renderForecast();
+      renderSettings();
+      alert('✅ 匯入成功！資料已儲存至 SharePoint。');
+    }catch(err){
+      alert('匯入失敗：'+err.message);
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+
+// ═══════════════════════════════════
+// PUSH TEMPLATE TO MONTHLY
+// ═══════════════════════════════════
+let pushCtx={type:null,coId:null,itemId:null};
+
+function getAllMonths(){
+  const months=[];
+  ST.seasons.forEach(s=>{getMths(s.key).forEach(m=>months.push({...m,seasonKey:s.key}));});
+  return months;
+}
+
+function openPushIncomeModal(){
+  const coId=tplCo.income;
+  const items=(ST.tplIncome[coId]||[]).filter(t=>t.name.trim());
+  if(!items.length){alert('尚無收入範本科目');return;}
+  pushCtx={type:'income',coId,itemId:null};
+  const co=COS.find(c=>c.id===coId);
+  document.getElementById('push-modal-title').textContent='帶入逐月收支 — '+co.short;
+  document.getElementById('push-modal-desc').textContent='將「'+co.short+'」的全部 '+items.length+' 個收入科目帶入選定月份（已有同名科目不重複新增）';
+  renderPushMonthList(false);
+  document.getElementById('push-modal-overlay').style.display='flex';
+}
+
+function openPushMonthlyModal(){
+  const coId=tplCo.expense;
+  const items=ST.tplMonthly[coId]||[];
+  if(!items.length){alert('尚無每月固定支出科目');return;}
+  pushCtx={type:'monthly',coId,itemId:null};
+  const co=COS.find(c=>c.id===coId);
+  document.getElementById('push-modal-title').textContent='帶入逐月收支 — '+co.short;
+  document.getElementById('push-modal-desc').textContent='將「'+co.short+'」的全部 '+items.length+' 個每月固定科目帶入選定月份（已有同名科目不重複新增）';
+  renderPushMonthList(false);
+  document.getElementById('push-modal-overlay').style.display='flex';
+}
+
+function openPushPeriodicModal(coId,itemId){
+  const items=ST.tplPeriodic[coId]||[];
+  const t=items.find(i=>i.id===itemId);
+  if(!t)return;
+  pushCtx={type:'periodic',coId,itemId};
+  document.getElementById('push-modal-title').textContent='帶入逐月收支';
+  document.getElementById('push-modal-desc').textContent='將「'+t.name+'」（'+t.amount.toLocaleString('zh-TW')+' NT$）帶入選定月份';
+  renderPushMonthList(false);
+  document.getElementById('push-modal-overlay').style.display='flex';
+}
+
+function renderPushMonthList(multiSelect){
+  const months=getAllMonths();
+  if(!months.length){document.getElementById('push-month-list').innerHTML='<div style="color:var(--text3);font-size:12px">尚未建立任何期別</div>';return;}
+  const isMulti=pushCtx.type==='monthly'||pushCtx.type==='income';
+  let h='';
+  if(isMulti){
+    h+=`<label style="font-size:11px;color:var(--text2);cursor:pointer;margin-bottom:4px"><input type="checkbox" id="push-all-months" onchange="togglePushAll(this.checked)" style="width:auto;margin-right:6px">全選所有月份</label>`;
+  }
+  // Group by season
+  const bySeason={};
+  months.forEach(m=>{(bySeason[m.seasonKey]||(bySeason[m.seasonKey]=[])).push(m);});
+  Object.entries(bySeason).forEach(([key,mths])=>{
+    const s=getSeasonObj(key);
+    h+=`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:8px;margin-bottom:3px">${seasonLabel(key)}</div>`;
+    mths.forEach(m=>{
+      if(isMulti){
+        h+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 0"><input type="checkbox" class="push-month-cb" value="${m.ym}" style="width:auto">${m.m}月 <span style="color:var(--text3);font-size:11px">${m.ym}</span></label>`;
+      } else {
+        h+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 0"><input type="radio" name="push-month-r" value="${m.ym}" style="width:auto">${m.m}月 <span style="color:var(--text3);font-size:11px">${m.ym}</span></label>`;
+      }
+    });
+  });
+  document.getElementById('push-month-list').innerHTML=h;
+}
+
+function togglePushAll(checked){
+  document.querySelectorAll('.push-month-cb').forEach(cb=>cb.checked=checked);
+}
+
+function confirmPushToMonthly(){
+  const {type,coId,itemId}=pushCtx;
+  let targetYms=[];
+  if(type==='monthly'||type==='income'){
+    targetYms=[...document.querySelectorAll('.push-month-cb:checked')].map(cb=>cb.value);
+  } else {
+    const r=document.querySelector('input[name="push-month-r"]:checked');
+    if(r)targetYms=[r.value];
+  }
+  if(!targetYms.length){alert('請選擇至少一個月份');return;}
+  let pushed=0;
+  targetYms.forEach(ym=>{
+    const data=getMonthCo(ym,coId);
+    if(type==='income'){
+      const items=(ST.tplIncome[coId]||[]).filter(t=>t.name.trim());
+      const existing=new Set(data.income.map(e=>e.name));
+      items.filter(t=>!existing.has(t.name)).forEach(t=>{data.income.push({id:uid(),name:t.name,amount:t.amount,isRenew:false});pushed++;});
+    } else if(type==='monthly'){
+      const items=ST.tplMonthly[coId]||[];
+      const existing=new Set(data.expense.map(e=>e.name));
+      items.filter(t=>t.name.trim()&&!existing.has(t.name)).forEach(t=>{data.expense.push({id:uid(),name:t.name,amount:t.amount,note:t.note||''});pushed++;});
+    } else {
+      const items=ST.tplPeriodic[coId]||[];
+      const t=items.find(i=>i.id===itemId);
+      if(t){
+        const exists=data.expense.find(e=>e.name===t.name);
+        if(!exists){data.expense.push({id:uid(),name:t.name,amount:t.amount,note:t.note||''});pushed++;}
+      }
+    }
+  });
+  scheduleSave();
+  closePushModal();
+  const msg=pushed>0?`已帶入 ${pushed} 筆至 ${targetYms.length} 個月份`:'所選月份已有相同科目，未重複新增';
+  alert(msg);
+}
+
+function closePushModal(){
+  document.getElementById('push-modal-overlay').style.display='none';
+  pushCtx={type:null,coId:null,itemId:null};
+}
+
+// ═══════════════════════════════════
+// INIT (called after MSAL CDN loads)
+// ═══════════════════════════════════
+function initMsal(){
+  msalInstance=new msal.PublicClientApplication(msalConfig);
+  msalInstance.initialize().then(()=>{
+    const accounts=msalInstance.getAllAccounts();
+    if(accounts.length>0){
+      currentAccount=accounts[0];
+      hideLoginOverlay();
+      updateAuthUI();
+      loadData();
+    }else{
+      showLoginOverlay();
+    }
+  }).catch(e=>{
+    console.error('MSAL init error',e);
+    document.getElementById('overlay-status').textContent='認證服務錯誤：'+e.message;
+  });
+}
+
+// Fix getToken/login to guard against null msalInstance
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js" onload="initMsal()" onerror="document.getElementById('overlay-status').textContent='認證服務載入失敗，請重新整理'"></script>
+
+<!-- Push to Monthly Modal -->
+<div id="push-modal-overlay" class="overlay" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr"><div class="modal-title" id="push-modal-title">帶入逐月收支</div><button class="btn-close" onclick="closePushModal()">✕</button></div>
+    <div style="padding:16px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="push-modal-desc"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">選擇要帶入的月份：</div>
+      <div id="push-month-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn pri" onclick="confirmPushToMonthly()">確認帶入</button>
+        <button class="btn" onclick="closePushModal()">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
