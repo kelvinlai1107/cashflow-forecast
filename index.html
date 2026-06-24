@@ -149,10 +149,10 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 .tpl-co-tabs{display:flex;gap:3px;margin-bottom:14px;background:var(--surface2);padding:3px;border-radius:var(--rl);width:fit-content}
 .tpl-co-tab{padding:5px 13px;border-radius:var(--r);font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);transition:all .12s;font-family:var(--sans)}
 .tpl-co-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.sort-btns{display:flex;flex-direction:column;gap:0;align-items:center}
-.btn-sort{background:none;border:none;cursor:pointer;color:var(--text3);padding:0 2px;line-height:1.1;font-size:11px;transition:all .1s;border-radius:2px}
-.btn-sort:hover{color:var(--green);background:var(--green-bg)}
-.btn-sort:disabled{opacity:.18;cursor:default}
+.drag-handle{cursor:grab;color:var(--text3);padding:0 3px;font-size:16px;user-select:none;line-height:1;display:flex;align-items:center}
+.drag-handle:active{cursor:grabbing}
+.tpl-row.drag-over{outline:2px solid var(--green);outline-offset:-1px;background:var(--green-bg)}
+.tpl-row[draggable=true]{cursor:default}
 /* settings */
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .pbox{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:15px;margin-bottom:12px}
@@ -1219,11 +1219,8 @@ function renderTplCo(type,coId){
     } else {
       h+='<div class="tpl-row with-note hdr"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>備註</span><span></span></div>';
       items.forEach((t,idx)=>{
-        h+=`<div class="tpl-row with-note">`
-          +`<div class="sort-btns">`
-          +`<button class="btn-sort" onclick="moveTplI('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
-          +`<button class="btn-sort" onclick="moveTplI('${coId}','${t.id}',1)" ${idx===items.length-1?'disabled':''}>▼</button>`
-          +`</div>`
+        h+=`<div class="tpl-row with-note" draggable="true" ondragstart="tplDrag(event,'income','${coId}','${t.id}')" ondragover="tplDragOver(event,this)" ondragleave="tplDragLeave(this)" ondrop="tplDrop(event,this,'income','${coId}','${t.id}')" ondragend="tplDragEnd(this)">`
+          +`<div class="drag-handle" title="拖曳排序">⠿</div>`
           +`<input type="text" value="${escH(t.name)}" placeholder="科目名稱" oninput="updTplI('${coId}','${t.id}','name',this.value)">`
           +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplI('${coId}','${t.id}','amount',this.value)">`
           +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplI('${coId}','${t.id}','note',this.value)">`
@@ -1244,11 +1241,8 @@ function renderTplCo(type,coId){
       h+=`<div class="tpl-row ${hasTplAcct?'with-note-acct':'with-note'} hdr"><span></span><span>支出項目</span><span>預設金額(NT$)</span><span>備註</span>${hasTplAcct?'<span>會計科目</span>':''}<span></span></div>`;
       items.forEach((t,idx)=>{
         const acctSel=hasTplAcct?`<select onchange="updTplM('${coId}','${t.id}','acctCode',this.value)">${buildAcctOpts(coId,t.acctCode||'')}</select>`:'';
-        h+=`<div class="tpl-row ${hasTplAcct?'with-note-acct':'with-note'}">`
-          +`<div class="sort-btns">`
-          +`<button class="btn-sort" onclick="moveTplM('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
-          +`<button class="btn-sort" onclick="moveTplM('${coId}','${t.id}',1)" ${idx===items.length-1?'disabled':''}>▼</button>`
-          +`</div>`
+        h+=`<div class="tpl-row ${hasTplAcct?'with-note-acct':'with-note'}" draggable="true" ondragstart="tplDrag(event,'expense','${coId}','${t.id}')" ondragover="tplDragOver(event,this)" ondragleave="tplDragLeave(this)" ondrop="tplDrop(event,this,'expense','${coId}','${t.id}')" ondragend="tplDragEnd(this)">`
+          +`<div class="drag-handle" title="拖曳排序">⠿</div>`
           +`<input type="text" value="${escH(t.name)}" placeholder="支出項目" oninput="updTplM('${coId}','${t.id}','name',this.value)">`
           +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplM('${coId}','${t.id}','amount',this.value)">`
           +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplM('${coId}','${t.id}','note',this.value)">`
@@ -1283,11 +1277,8 @@ function renderTplCo(type,coId){
         h+=`<div class="${wideClass} hdr" style="margin-top:4px"><span></span><span>支出項目</span><span>預設金額(NT$)</span><span>頻率</span><span>備註</span>${hasPAcct?'<span>會計科目</span>':''}<span></span></div>`;
         grp.forEach((t,idx)=>{
           const pAcctSel=hasPAcct?`<select onchange="updTplP('${coId}','${t.id}','acctCode',this.value)">${buildAcctOpts(coId,t.acctCode||'')}</select>`:'';
-          h+=`<div class="${wideClass}">`
-            +`<div class="sort-btns">`
-            +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
-            +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',1)" ${idx===grp.length-1?'disabled':''}>▼</button>`
-            +`</div>`
+          h+=`<div class="${wideClass}" draggable="true" ondragstart="tplDrag(event,'periodic','${coId}','${t.id}')" ondragover="tplDragOver(event,this)" ondragleave="tplDragLeave(this)" ondrop="tplDrop(event,this,'periodic','${coId}','${t.id}')" ondragend="tplDragEnd(this)">`
+            +`<div class="drag-handle" title="拖曳排序">⠿</div>`
             +`<input type="text" value="${escH(t.name)}" placeholder="支出項目" oninput="updTplP('${coId}','${t.id}','name',this.value)">`
             +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplP('${coId}','${t.id}','amount',this.value)">`
             +`<select onchange="updTplP('${coId}','${t.id}','freq',this.value);renderTplCo('periodic','${coId}')">${PFREQS.map(f=>`<option value="${f.v}"${t.freq===f.v?' selected':''}>${f.l}</option>`).join('')}</select>`
@@ -1388,6 +1379,28 @@ function confirmCopyTpl(type,srcId){
 function addTplI(coId){if(!ST.tplIncome[coId])ST.tplIncome[coId]=[];ST.tplIncome[coId].push({id:uid(),name:'',amount:0,note:''});renderTplCo('income',coId);scheduleSave();}
 function delTplI(coId,id){ST.tplIncome[coId]=(ST.tplIncome[coId]||[]).filter(t=>t.id!==id);renderTplCo('income',coId);scheduleSave();}
 function updTplI(coId,id,field,val){const t=(ST.tplIncome[coId]||[]).find(t=>t.id===id);if(!t)return;t[field]=field==='amount'?parseFloat(val)||0:val;scheduleSave();}
+// ═══════════════════════════════════
+// TEMPLATE DRAG-AND-DROP SORT
+// ═══════════════════════════════════
+let _dragSrc=null;
+function tplDrag(e,type,coId,id){
+  _dragSrc={type,coId,id};
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>e.target.closest('.tpl-row').style.opacity='0.4',0);
+}
+function tplDragOver(e,el){e.preventDefault();e.dataTransfer.dropEffect='move';el.classList.add('drag-over');}
+function tplDragLeave(el){el.classList.remove('drag-over');}
+function tplDrop(e,el,type,coId,id){
+  e.preventDefault();el.classList.remove('drag-over');
+  if(!_dragSrc||_dragSrc.id===id||_dragSrc.type!==type||_dragSrc.coId!==coId)return;
+  const arr=type==='income'?(ST.tplIncome[coId]||[]):type==='expense'?(ST.tplMonthly[coId]||[]):(ST.tplPeriodic[coId]||[]);
+  const fi=arr.findIndex(t=>t.id===_dragSrc.id),ti=arr.findIndex(t=>t.id===id);
+  if(fi<0||ti<0)return;
+  const [item]=arr.splice(fi,1);arr.splice(ti,0,item);
+  scheduleSave();renderTplCo(type,coId);
+}
+function tplDragEnd(el){el.style.opacity='';document.querySelectorAll('.drag-over').forEach(e=>e.classList.remove('drag-over'));_dragSrc=null;}
+
 function moveTplI(coId,id,dir){const arr=ST.tplIncome[coId]||[];const i=arr.findIndex(t=>t.id===id);const j=i+dir;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];renderTplCo('income',coId);scheduleSave();}
 // expense tpl CRUD
 function addTplM(coId){if(!ST.tplMonthly[coId])ST.tplMonthly[coId]=[];ST.tplMonthly[coId].push({id:uid(),name:'',amount:0,note:''});renderTplCo('expense',coId);scheduleSave();}
