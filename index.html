@@ -137,6 +137,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 .tpl-row:last-child{border-bottom:none}
 .tpl-row.hdr{font-size:10px;color:var(--text3);padding:3px 0 6px;font-weight:500;letter-spacing:.04em}
 .tpl-row.wide{grid-template-columns:22px minmax(130px,1.6fr) minmax(90px,1fr) 100px minmax(80px,1fr) 48px 26px}
+.tpl-row.wide.with-acct{grid-template-columns:22px minmax(110px,1.4fr) minmax(80px,0.8fr) 90px minmax(70px,0.8fr) minmax(110px,1.2fr) 44px 26px}
 .tpl-sec-lbl{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 5px;border-bottom:.5px solid var(--border)}
 .tpl-tabs{display:flex;gap:0;border-bottom:.5px solid var(--border);margin-bottom:16px}
 .tpl-tab{padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;font-family:var(--sans)}
@@ -1266,9 +1267,12 @@ function renderTplCo(type,coId){
         const grp=groups[freq];
         if(!grp.length)return;
         h+=`<div style="margin-top:10px;margin-bottom:2px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;padding:4px 0;border-bottom:1px solid var(--border)">${freqLabel[freq]}</div>`;
-        h+='<div class="tpl-row wide hdr" style="margin-top:4px"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>頻率</span><span>備註</span><span></span></div>';
+        const hasPAcct=getAcctCodes(coId).length>0;
+        const wideClass=`tpl-row wide${hasPAcct?' with-acct':''}`;
+        h+=`<div class="${wideClass} hdr" style="margin-top:4px"><span></span><span>科目名稱</span><span>預設金額(NT$)</span><span>頻率</span><span>備註</span>${hasPAcct?'<span>會計科目</span>':''}<span></span></div>`;
         grp.forEach((t,idx)=>{
-          h+=`<div class="tpl-row wide">`
+          const pAcctSel=hasPAcct?`<select onchange="updTplP('${coId}','${t.id}','acctCode',this.value)">${buildAcctOpts(coId,t.acctCode||'')}</select>`:'';
+          h+=`<div class="${wideClass}">`
             +`<div class="sort-btns">`
             +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',-1)" ${idx===0?'disabled':''}>▲</button>`
             +`<button class="btn-sort" onclick="moveTplP('${coId}','${t.id}',1)" ${idx===grp.length-1?'disabled':''}>▼</button>`
@@ -1277,8 +1281,9 @@ function renderTplCo(type,coId){
             +`<input type="number" value="${t.amount}" min="0" step="100" oninput="updTplP('${coId}','${t.id}','amount',this.value)">`
             +`<select onchange="updTplP('${coId}','${t.id}','freq',this.value);renderTplCo('periodic','${coId}')">${PFREQS.map(f=>`<option value="${f.v}"${t.freq===f.v?' selected':''}>${f.l}</option>`).join('')}</select>`
             +`<input type="text" value="${escH(t.note||'')}" placeholder="備註" oninput="updTplP('${coId}','${t.id}','note',this.value)">`
+            +pAcctSel
             +`<button class="btn sm" style="padding:2px 7px;font-size:10px;background:var(--green-bg);color:var(--green);border-color:var(--green)" onclick="openPushPeriodicModal('${coId}','${t.id}')">→月</button>`
-          +`<button class="btn-del" onclick="delTplP('${coId}','${t.id}')">✕</button>`
+            +`<button class="btn-del" onclick="delTplP('${coId}','${t.id}')">✕</button>`
             +'</div>';
         });
       });
@@ -1979,14 +1984,4 @@ function initMsal(){
     <div class="modal-hdr"><div class="modal-title" id="push-modal-title">帶入逐月收支</div><button class="btn-close" onclick="closePushModal()">✕</button></div>
     <div style="padding:16px">
       <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="push-modal-desc"></div>
-      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">選擇要帶入的月份：</div>
-      <div id="push-month-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
-      <div style="display:flex;gap:8px;margin-top:16px">
-        <button class="btn pri" onclick="confirmPushToMonthly()">確認帶入</button>
-        <button class="btn" onclick="closePushModal()">取消</button>
-      </div>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+      <div style="font-size
